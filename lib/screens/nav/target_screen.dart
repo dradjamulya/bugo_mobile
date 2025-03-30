@@ -2,15 +2,23 @@ import 'package:bugo_mobile/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'profile_screen.dart';
 
-class TargetScreen extends StatelessWidget {
+class TargetScreen extends StatefulWidget {
   const TargetScreen({Key? key}) : super(key: key);
+
+  @override
+  _TargetScreenState createState() => _TargetScreenState();
+}
+
+class _TargetScreenState extends State<TargetScreen> {
+  List<bool> isStarred = List.generate(7, (index) => false); // Menyimpan status bintang
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFBCFDF7), // cyan
+      backgroundColor: const Color(0xFFBCFDF7), // Background cyan
       body: Stack(
         children: [
+          // Header Gambar
           Positioned(
             top: 0,
             left: 0,
@@ -28,7 +36,7 @@ class TargetScreen extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 120),
             child: Column(
               children: [
-                // Header
+                // Header Section
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
@@ -38,7 +46,7 @@ class TargetScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: const [
                           Chip(
-                            backgroundColor: Color(0xFF342E37), // hitam
+                            backgroundColor: Color(0xFF342E37), // Hitam
                             label: Text("Flip", style: TextStyle(color: Colors.white)),
                           ),
                         ],
@@ -60,14 +68,14 @@ class TargetScreen extends StatelessWidget {
                       const Text(
                         'Rp999.000.000.000',
                         style: TextStyle(
-                          color: Color(0xFFFFED66), // kuning
+                          color: Color(0xFFFFED66), // Kuning
                           fontSize: 16,
                         ),
                       ),
                       const SizedBox(height: 20),
                       CircleAvatar(
                         backgroundColor: Colors.white,
-                        child: Icon(Icons.add, color: Color(0xFFE13D56)), // pink
+                        child: Icon(Icons.add, color: Color(0xFFE13D56)), // Pink
                       ),
                     ],
                   ),
@@ -85,8 +93,8 @@ class TargetScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFFFFF), // putih
-                          borderRadius: BorderRadius.circular(25),
+                          color: const Color(0xFFFFFFFF), // Putih
+                          borderRadius: BorderRadius.circular(30),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.05),
@@ -96,33 +104,65 @@ class TargetScreen extends StatelessWidget {
                           ],
                         ),
                         child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
                           title: const Text(
                             'Mobil',
                             style: TextStyle(
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF342E37), // hitam
+                              color: Color(0xFF342E37), // Hitam
                             ),
                           ),
-                          subtitle: const Column(
+                          subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Rp999.000.000.000 / Rp999.000.000.000',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF9D8DF1), // ungu
+                              RichText(
+                                text: const TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: 'Rp999.000.000 ', // Jumlah yang sudah ditabung
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF342E37), // Hitam
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: '/ Rp999.000.000', // Target tabungan
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF9D8DF1), // Ungu
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              SizedBox(height: 4),
-                              Text(
+                              const SizedBox(height: 5),
+                              const Text(
                                 'Completion Plan : 2027',
                                 style: TextStyle(
+                                  fontSize: 14,
                                   color: Colors.grey,
+                                  fontStyle: FontStyle.italic,
                                 ),
                               ),
                             ],
                           ),
-                          trailing: const Icon(Icons.star_border, size: 30),
+                          trailing: IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: Icon(
+                              isStarred[index] ? Icons.star : Icons.star_border,
+                              color: isStarred[index] ? Colors.yellow : Colors.black,
+                              size: 35, // Ukuran lebih fit
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                isStarred[index] = !isStarred[index];
+                              });
+                            },
+                          ),
                         ),
                       ),
                     );
@@ -132,7 +172,7 @@ class TargetScreen extends StatelessWidget {
             ),
           ),
 
-          // **Navigasi Bawah**
+          // Navigasi Bawah
           Positioned(
             bottom: 10,
             left: 20,
@@ -140,7 +180,7 @@ class TargetScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
               decoration: BoxDecoration(
-                color: const Color(0xFFE13D56),
+                color: const Color(0xFFE13D56), // Pink
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Row(
@@ -148,10 +188,9 @@ class TargetScreen extends StatelessWidget {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) =>
-                        const HomeScreen())
+                        MaterialPageRoute(builder: (context) => const HomeScreen()),
                       );
                     },
                     child: const Icon(
@@ -163,28 +202,25 @@ class TargetScreen extends StatelessWidget {
 
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const TargetScreen()),
-                      );
+                      // Tetap di halaman yang sama tanpa reload
                     },
                     child: const Icon(
                       Icons.account_balance_wallet,
-                      color: Colors.black,
+                      color: Colors.black, // Indikasi sedang aktif
                       size: 30,
                     ),
                   ),
 
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (context) => const ProfileScreen()),
                       );
                     },
                     child: const Icon(
                       Icons.person,
-                      color: Colors.white,                       
+                      color: Colors.white,
                       size: 30,
                     ),
                   ),
