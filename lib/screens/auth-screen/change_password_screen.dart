@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import '/home_screen.dart';
-import 'register_screen.dart';
+import '../home-screen/home_screen.dart';
 
-class ErrorLoginScreen extends StatelessWidget {
-  const ErrorLoginScreen({super.key});
+class ChangePasswordScreen extends StatelessWidget {
+  const ChangePasswordScreen({super.key});
 
-  @override
+@override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SizedBox(
@@ -16,7 +15,7 @@ class ErrorLoginScreen extends StatelessWidget {
             // Background Image
             Positioned.fill(
               child: Image.asset(
-                'assets/login-screen-bg-mob-bugo.png',
+                'assets/bg-edit-password.png',
                 fit: BoxFit.cover,
               ),
             ),
@@ -24,38 +23,38 @@ class ErrorLoginScreen extends StatelessWidget {
             // Login Form
             Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(height: 5),
-                  // Welcome Text
-                  Text(
-                    "Make sure you filled them correctly!",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFE13D56),
+                  const SizedBox(height: 140), // Jarak atas untuk "Hey, User!"
+                  const Center(
+                    child: Text(
+                      'Change Password?',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                  SizedBox(height: 24),
+                  SizedBox(height: 140),
 
-                  // Username Field
+                  // Change Field
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 40),
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'USERNAME',
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'CURRENT PASSWORD',
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: 24),
+                    SizedBox(height: 20),
 
-                  // Password Field
+                  // New Password Field
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 40),
                     padding: EdgeInsets.symmetric(horizontal: 20),
@@ -67,46 +66,31 @@ class ErrorLoginScreen extends StatelessWidget {
                       obscureText: true,
                       decoration: InputDecoration(
                         border: InputBorder.none,
-                        hintText: 'PASSWORD',
+                        hintText: 'NEW PASSWORD',
                       ),
                     ),
                   ),
-                  SizedBox(height: 24),
+                  SizedBox(height: 20),
 
-                  // Register Text (Style sama dengan welcome text)
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context, 
-                        MaterialPageRoute(builder: (context) => const RegisterScreen()
-                        ),
-                      );
-                    },
-                    child: RichText(
-                      text: TextSpan(
-                        text: "Don’t have an account, Bud? ",
-                        style: TextStyle(
-                          fontSize: 18, // Ukuran disamakan
-                          fontWeight: FontWeight.bold, // Bold disamakan
-                          color: Colors.black,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: 'Register',
-                            style: TextStyle(
-                              fontSize: 18, // Ukuran disamakan
-                              fontWeight: FontWeight.bold, // Bold disamakan
-                              color: Color(0xFF9D8DF1), // Warna ungu
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ],
+                  // Confirm new password field
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: 40),
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: TextField(
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'CONFIRM NEW PASSWORD',
                       ),
                     ),
                   ),
-                  SizedBox(height: 34),
+                  SizedBox(height: 20),
 
-                  // Login Button
+                  // Save
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.yellow,
@@ -123,7 +107,7 @@ class ErrorLoginScreen extends StatelessWidget {
                       );
                     },
                     child: Text(
-                      'LOG IN',
+                      'SAVE',
                       style: TextStyle(color: Colors.black),
                     ),
                   ),

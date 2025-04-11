@@ -1,6 +1,7 @@
-import 'package:bugo_mobile/home_screen.dart';
+import 'package:bugo_mobile/screens/home-screen/home_screen.dart';
 import 'package:flutter/material.dart';
-import 'profile_screen.dart';
+import '../auth-screen/profile_screen.dart';
+import 'input_screen.dart';
 
 class TargetScreen extends StatefulWidget {
   const TargetScreen({Key? key}) : super(key: key);
@@ -75,7 +76,17 @@ class _TargetScreenState extends State<TargetScreen> {
                       const SizedBox(height: 20),
                       CircleAvatar(
                         backgroundColor: Colors.white,
-                        child: Icon(Icons.add, color: Color(0xFFE13D56)), // Pink
+                        child: IconButton(
+                          icon: const Icon(Icons.add, color: Color(0xFFE13D56)
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context, 
+                              MaterialPageRoute(builder: (context) => const InputScreen()
+                              ),
+                            );
+                          },
+                        )
                       ),
                     ],
                   ),

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../home_screen.dart';
+import '../home-screen/home_screen.dart';
+import 'register_screen.dart';
 
-class ChangePasswordScreen extends StatelessWidget {
-  const ChangePasswordScreen({super.key});
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
 
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SizedBox(
@@ -15,7 +16,7 @@ class ChangePasswordScreen extends StatelessWidget {
             // Background Image
             Positioned.fill(
               child: Image.asset(
-                'assets/bg-edit-password.png',
+                'assets/login-screen-bg-mob-bugo.png',
                 fit: BoxFit.cover,
               ),
             ),
@@ -23,74 +24,89 @@ class ChangePasswordScreen extends StatelessWidget {
             // Login Form
             Center(
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 140), // Jarak atas untuk "Hey, User!"
-                  const Center(
-                    child: Text(
-                      'Change Password?',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                  SizedBox(height: 5),
+                  // Welcome Text
+                  Text(
+                    "It's nice to have you back, Bud!",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
-                  SizedBox(height: 140),
+                  SizedBox(height: 24),
 
-                  // Change Field
+                  // Username Field
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 40),
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                        borderRadius: BorderRadius.circular(25),
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: TextField(
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'USERNAME',
                       ),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'CURRENT PASSWORD',
+                    ),
+                  ),
+                  SizedBox(height: 24),
+
+                  // Password Field
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: 40),
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: TextField(
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'PASSWORD',
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 24),
+
+                  // Register Text (Style sama dengan welcome text)
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context, 
+                        MaterialPageRoute(builder: (context) => const RegisterScreen()
                         ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-
-                  // New Password Field
-                  Container(
-                    margin: EdgeInsets.symmetric(horizontal: 40),
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: TextField(
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'NEW PASSWORD',
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-                  // Confirm new password field
-                  Container(
-                    margin: EdgeInsets.symmetric(horizontal: 40),
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: TextField(
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'CONFIRM NEW PASSWORD',
+                      );
+                    },
+                    child: RichText(
+                      text: TextSpan(
+                        text: "Don’t have an account, Bud? ",
+                        style: TextStyle(
+                          fontSize: 18, // Ukuran disamakan
+                          fontWeight: FontWeight.bold, // Bold disamakan
+                          color: Colors.black,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'Register',
+                            style: TextStyle(
+                              fontSize: 18, // Ukuran disamakan
+                              fontWeight: FontWeight.bold, // Bold disamakan
+                              color: Color(0xFF9D8DF1), // Warna ungu
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 34),
 
-                  // Save
+                  // Login Button
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.yellow,
@@ -107,7 +123,7 @@ class ChangePasswordScreen extends StatelessWidget {
                       );
                     },
                     child: Text(
-                      'SAVE',
+                      'LOG IN',
                       style: TextStyle(color: Colors.black),
                     ),
                   ),

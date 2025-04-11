@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../home_screen.dart';
+import '../home-screen/home_screen.dart';
 import 'register_screen.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class ErrorLoginScreen extends StatelessWidget {
+  const ErrorLoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +29,11 @@ class LoginScreen extends StatelessWidget {
                   SizedBox(height: 5),
                   // Welcome Text
                   Text(
-                    "It's nice to have you back, Bud!",
+                    "Make sure you filled them correctly!",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: Color(0xFFE13D56),
                     ),
                   ),
                   SizedBox(height: 24),
