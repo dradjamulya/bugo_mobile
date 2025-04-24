@@ -1,8 +1,10 @@
 import 'package:bugo_mobile/screens/target-screen/input_savings_screen.dart';
 import 'package:bugo_mobile/screens/target-screen/input_target_screen_step1.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../home-screen/home_screen.dart';
 import '../auth-screen/profile_screen.dart';
+import 'input_target_screen_step2.dart';
 
 class InputScreen extends StatelessWidget {
   const InputScreen({super.key});
@@ -12,29 +14,44 @@ class InputScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
+          Container(
+            color: const Color(0xFFBCFDF7),
+          ),
+
           Positioned.fill(
-            child: Image.asset(
-              'assets/bg-screen.png',
-              fit: BoxFit.cover,
+            child: Column(
+              children: [
+                ClipPath(
+                  clipper: TopCurveClipper(),
+                  child: Container(
+                    height: 300,
+                    color: const Color(0xFFE13D56),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    color: const Color(0xFFBCFDF7),
+                  ),
+                ),
+              ],
             ),
           ),
 
-          // **Konten Utama**
+          // Konten Utama
           Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const SizedBox(height: 90), // Jarak atas untuk "Hey, User!"
-              const Center(
-                child: Text(
-                  'Which one will you add?',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+              const SizedBox(height: 90), 
+              Text (
+                'Which one will you add?',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  height: 1.54,
                 ),
               ),
-              const SizedBox(height: 25), // Jarak antara teks dan form
+              const SizedBox(height: 25), 
 
               Expanded(
                 child: SingleChildScrollView(
@@ -45,17 +62,35 @@ class InputScreen extends StatelessWidget {
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 40),
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(25),
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFFECFEFD),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          shadows: [
+                            BoxShadow(
+                              color: Color(0x3F000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 4),
+                              spreadRadius: 0,
+                            )
+                          ],
                         ),
                         child: TextField(
-                          obscureText: true,
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF342E37),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'New Target',
                             suffixIcon: IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.black, size: 15),
+                              icon: const Icon(
+                                Icons.edit, 
+                                color: Colors.black, 
+                                size: 15
+                              ),
                               onPressed: () {
                                 Navigator.push(
                                   context,
@@ -72,17 +107,35 @@ class InputScreen extends StatelessWidget {
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 40),
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(25),
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFFECFEFD),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          shadows: [
+                            BoxShadow(
+                              color: Color(0x3F000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 4),
+                              spreadRadius: 0,
+                            )
+                          ],
                         ),
                         child: TextField(
-                          obscureText: true,
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF342E37),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Add Savings',
                             suffixIcon: IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.black, size: 15),
+                              icon: const Icon(
+                                Icons.edit, 
+                                color: Colors.black, 
+                                size: 15
+                              ),
                               onPressed: () {
                                 Navigator.push(
                                   context,
@@ -98,11 +151,12 @@ class InputScreen extends StatelessWidget {
                       // **Copyright**
                       Text(
                         'Copyright© BUGO2025',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold
-                        ),
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFF342E37),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),  
                       ),
                       const SizedBox(height: 50), // Jarak agar tidak menempel ke navigasi
                     ],
@@ -112,9 +166,9 @@ class InputScreen extends StatelessWidget {
             ],
           ),
 
-          // **Navigasi Bawah**
+          // Navigasi Bawah
           Positioned(
-            bottom: 10,
+            bottom: 10, 
             left: 20,
             right: 20,
             child: Container(
@@ -130,40 +184,40 @@ class InputScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const HomeScreen()),
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) => const HomeScreen(),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
+                        ),
                       );
                     },
-                    child: const Icon(
-                      Icons.history,
-                      color: Colors.white,
-                      size: 30,
+                    child: Image.asset(
+                      'assets/icons/wallet.png',
+                      width: 33,
+                      height: 33,
                     ),
+                  ),          
+                  Image.asset(
+                    'assets/icons/wallet.png',
+                    width: 35,
+                    height: 35,
+                    color: const Color(0xFF342E37),
                   ),
-
-                  GestureDetector(
-                        onTap: () {
-                          // Tetap berada di page tanpa reload
-                        },
-                        child: const Icon(
-                          Icons.account_balance_wallet,
-                          color: Colors.black, 
-                          size: 30,
-                        ),
-                      ),
-                      
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                        context, 
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) => const ProfileScreen(),
+                        ),
                       );
                     },
-                    child: const Icon(
-                      Icons.person,
-                      color: Colors.white,
-                      size: 30,
+                    child: Image.asset(
+                      'assets/icons/person.png',
+                      width: 35,
+                      height: 35,
                     ),
-                  ),
+                  )
                 ],
               ),
             ),
@@ -203,4 +257,24 @@ class _EditableIconState extends State<EditableIcon> {
       ),
     );
   }
+}
+
+class TopCurveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    path.lineTo(0, size.height - 100);
+    path.quadraticBezierTo(
+      size.width / 2,
+      size.height - 185,
+      size.width,
+      size.height - 100,
+    );
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }

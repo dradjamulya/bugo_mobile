@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../home-screen/home_screen.dart';
 
 class ChangePasswordScreen extends StatelessWidget {
   const ChangePasswordScreen({super.key});
 
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SizedBox(
@@ -12,11 +13,26 @@ class ChangePasswordScreen extends StatelessWidget {
         height: double.infinity,
         child: Stack(
           children: [
-            // Background Image
+            Container(
+              color: const Color(0xFFBCFDF7),
+            ),
+
             Positioned.fill(
-              child: Image.asset(
-                'assets/bg-edit-password.png',
-                fit: BoxFit.cover,
+              child: Column(
+                children: [
+                  ClipPath(
+                    clipper: TopCurveClipper(),
+                    child: Container(
+                      height: 405,
+                      color: const Color(0xFFE13D56),
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      color: const Color(0xFFBCFDF7),
+                    ),
+                  ),
+                ],
               ),
             ),
 
@@ -24,14 +40,15 @@ class ChangePasswordScreen extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  const SizedBox(height: 140), // Jarak atas untuk "Hey, User!"
-                  const Center(
+                  const SizedBox(height: 160),
+                  Center(
                     child: Text(
                       'Change Password?',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
+                      style: GoogleFonts.poppins(
                         color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        height: 1.25,
                       ),
                     ),
                   ),
@@ -41,74 +58,129 @@ class ChangePasswordScreen extends StatelessWidget {
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 40),
                     padding: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                        borderRadius: BorderRadius.circular(25),
+                    decoration: ShapeDecoration(
+                      color: const Color(0xFFECFEFD),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
                       ),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'CURRENT PASSWORD',
-                        ),
+                      shadows: [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 4),
+                          spreadRadius: 0,
+                        )
+                      ],
+                    ),
+
+                    child: TextField(
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                            color: const Color(0xFF342E37),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                      ),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'CURRENT PASSWORD',
                       ),
                     ),
-                    SizedBox(height: 20),
+                  ),
+                  SizedBox(height: 27),
 
                   // New Password Field
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 40),
                     padding: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(25),
+                    decoration: ShapeDecoration(
+                      color: const Color(0xFFECFEFD),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      shadows: [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 4),
+                          spreadRadius: 0,
+                        )
+                      ],
                     ),
+                    
                     child: TextField(
-                      obscureText: true,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                            color: const Color(0xFF342E37),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                      ),
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: 'NEW PASSWORD',
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 27),
 
                   // Confirm new password field
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 40),
                     padding: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(25),
+                    decoration: ShapeDecoration(
+                      color: const Color(0xFFECFEFD),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      shadows: [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 4),
+                          spreadRadius: 0,
+                        )
+                      ],
                     ),
+                    
                     child: TextField(
-                      obscureText: true,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                            color: const Color(0xFF342E37),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                      ),
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: 'CONFIRM NEW PASSWORD',
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 38),
 
                   // Save
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.yellow,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(30),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 50, vertical: 10),
                     ),
                     onPressed: () {
                       Navigator.pushReplacement(
-                        context, 
-                        MaterialPageRoute(builder: (context) => const HomeScreen()
-                        ),
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const HomeScreen()),
                       );
                     },
                     child: Text(
                       'SAVE',
-                      style: TextStyle(color: Colors.black),
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                      color: const Color(0xFF342E37),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,                      
+                      ),
                     ),
                   ),
                 ],
@@ -119,4 +191,24 @@ class ChangePasswordScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class TopCurveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    path.lineTo(0, size.height - 100);
+    path.quadraticBezierTo(
+      size.width / 2,
+      size.height - 185,
+      size.width,
+      size.height - 100,
+    );
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }

@@ -1,4 +1,5 @@
-import 'package:bugo_mobile/screens/home-screen/home_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../home-screen/home_screen.dart';
 import 'package:flutter/material.dart';
 import '../auth-screen/profile_screen.dart';
 import 'input_screen.dart';
@@ -11,24 +12,22 @@ class TargetScreen extends StatefulWidget {
 }
 
 class _TargetScreenState extends State<TargetScreen> {
-  List<bool> isStarred = List.generate(7, (index) => false); // Menyimpan status bintang
+  List<bool> isStarred = List.generate(7, (index) => false);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFBCFDF7), // Background cyan
       body: Stack(
         children: [
-          // Header Gambar
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Image.asset(
-              'assets/header-target-screen.png',
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: 283, 
+          Container(
+            color: const Color(0xFFBCFDF7),
+          ),
+
+          ClipPath(
+            clipper: BottomCurveClipper(),
+            child: Container(
+              height: 400,
+              color: const Color(0xFFE13D56),
             ),
           ),
 
@@ -40,122 +39,188 @@ class _TargetScreenState extends State<TargetScreen> {
                 // Header Section
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
                   child: Column(
                     children: [
+                      const SizedBox(height: 35),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
-                        children: const [
-                          Chip(
-                            backgroundColor: Color(0xFF342E37), // Hitam
-                            label: Text("Flip", style: TextStyle(color: Colors.white)),
-                          ),
+                        children: [
+                          Container(
+                            width: 63,
+                            height: 33,
+                            decoration: ShapeDecoration(
+                              color: const Color(0xFF342E37),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              shadows: [
+                                BoxShadow(
+                                  color: Color(0x3F000000),
+                                  blurRadius: 4,
+                                  offset: Offset(0, 4),
+                                  spreadRadius: 0,
+                                )
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Flip',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          )
                         ],
                       ),
-                      const SizedBox(height: 20),
-                      const Text(
+                      const SizedBox(height: 10),
+                      Text(
                         'Current Target :',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                      const Text(
-                        'Rp999.000.000.000',
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        'Rp999.000.000.000',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 34,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(height: 5),
-                      const Text(
+                      Text(
                         'Rp999.000.000.000',
-                        style: TextStyle(
-                          color: Color(0xFFFFED66), // Kuning
-                          fontSize: 16,
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFFFFED66),
+                          fontSize: 22,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                       const SizedBox(height: 20),
-                      CircleAvatar(
-                        backgroundColor: Colors.white,
-                        child: IconButton(
-                          icon: const Icon(Icons.add, color: Color(0xFFE13D56)
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context, 
-                              MaterialPageRoute(builder: (context) => const InputScreen()
-                              ),
-                            );
-                          },
-                        )
-                      ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                // Tombol Plus
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => InputScreen()),
+                    );
+                  },
+                  child: Container(
+                    width: 72,
+                    height: 38,
+                    decoration: ShapeDecoration(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(
+                          width: 5,
+                          color: const Color(0xFFE13D56),
+                        ),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      shadows: [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 4),
+                          spreadRadius: 0,
+                        )
+                      ],
+                    ),
+                    child: Center(
+                      child: Image.asset(
+                        'assets/icons/plus.png',
+                        width: 26,
+                        height: 26,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
 
                 // List Target
                 ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
+                  physics: NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
                   itemCount: 7,
                   itemBuilder: (context, index) {
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
                       child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFFFFF), // Putih
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
+                        width: 401,
+                        height: 133,
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFFECFEFD),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          shadows: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 8,
-                              offset: const Offset(0, 10),
+                              color: Color(0x3F000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 4),
+                              spreadRadius: 0,
                             )
                           ],
                         ),
                         child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
-                          title: const Text(
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 15),
+                          title: Text(
                             'Mobil',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF342E37), // Hitam
+                            style: GoogleFonts.poppins(
+                              color: const Color(0xFF342E37),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
                             ),
                           ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              const SizedBox(height: 2),
                               RichText(
-                                text: const TextSpan(
+                                text: TextSpan(
                                   children: [
                                     TextSpan(
-                                      text: 'Rp999.000.000 ', // Jumlah yang sudah ditabung
+                                      text: 'Rp999.000.000.000\n',
                                       style: TextStyle(
+                                        color: const Color(0xFF342E37),
                                         fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF342E37), // Hitam
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                     TextSpan(
-                                      text: '/ Rp999.000.000', // Target tabungan
+                                      text: '/ Rp999.000.000.000',
                                       style: TextStyle(
+                                        color: const Color(0xFF9D8DF1),
                                         fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF9D8DF1), // Ungu
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
                               const SizedBox(height: 5),
-                              const Text(
+                              Text(
                                 'Completion Plan : 2027',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
+                                style: GoogleFonts.poppins(
+                                  color: const Color(0xFF342E37),
+                                  fontSize: 12,
                                   fontStyle: FontStyle.italic,
+                                  fontWeight: FontWeight.w400,
                                 ),
                               ),
                             ],
@@ -165,8 +230,10 @@ class _TargetScreenState extends State<TargetScreen> {
                             constraints: const BoxConstraints(),
                             icon: Icon(
                               isStarred[index] ? Icons.star : Icons.star_border,
-                              color: isStarred[index] ? Colors.yellow : Colors.black,
-                              size: 35, // Ukuran lebih fit
+                              color: isStarred[index]
+                                  ? Colors.yellow
+                                  : Colors.black,
+                              size: 47,
                             ),
                             onPressed: () {
                               setState(() {
@@ -191,7 +258,7 @@ class _TargetScreenState extends State<TargetScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
               decoration: BoxDecoration(
-                color: const Color(0xFFE13D56), // Pink
+                color: const Color(0xFFE13D56),
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Row(
@@ -199,40 +266,42 @@ class _TargetScreenState extends State<TargetScreen> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushReplacement(
+                      Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const HomeScreen()),
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) => const HomeScreen(),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
+                        ),
                       );
                     },
-                    child: const Icon(
-                      Icons.history,
-                      color: Colors.white,
-                      size: 30,
+                    child: Image.asset(
+                      'assets/icons/arrow.png',
+                      width: 33,
+                      height: 33,
                     ),
                   ),
-
-                  GestureDetector(
-                    onTap: () {
-                      // Tetap di halaman yang sama tanpa reload
-                    },
-                    child: const Icon(
-                      Icons.account_balance_wallet,
-                      color: Colors.black, // Indikasi sedang aktif
-                      size: 30,
-                    ),
+                  Image.asset(
+                    'assets/icons/wallet.png',
+                    width: 35,
+                    height: 35,
+                    color: const Color(0xFF342E37),
                   ),
-
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushReplacement(
+                      Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) => const ProfileScreen(),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
+                        ),
                       );
                     },
-                    child: const Icon(
-                      Icons.person,
-                      color: Colors.white,
-                      size: 30,
+                    child: Image.asset(
+                      'assets/icons/person.png',
+                      width: 35,
+                      height: 35,
                     ),
                   ),
                 ],
@@ -243,4 +312,27 @@ class _TargetScreenState extends State<TargetScreen> {
       ),
     );
   }
+}
+
+class BottomCurveClipper extends CustomClipper<Path> {
+  final double curveHeight;
+
+  BottomCurveClipper({this.curveHeight = 120});
+
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0, size.height - curveHeight);
+    path.arcToPoint(
+      Offset(size.width, size.height - curveHeight),
+      radius: Radius.elliptical(size.width, curveHeight * 2),
+      clockwise: false,
+    );
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => true;
 }

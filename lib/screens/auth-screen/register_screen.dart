@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SizedBox(
@@ -20,7 +21,7 @@ class RegisterScreen extends StatelessWidget {
               ),
             ),
 
-            // Login Form
+            // Register Form
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -29,10 +30,11 @@ class RegisterScreen extends StatelessWidget {
                   // Welcome Text
                   Text(
                     "Hi! Let's be Buddies!",
-                    style: TextStyle(
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      color: const Color(0xFF342E37),
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   SizedBox(height: 24),
@@ -41,11 +43,27 @@ class RegisterScreen extends StatelessWidget {
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 40),
                     padding: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
+                    decoration: ShapeDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      shadows: [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 4),
+                          spreadRadius: 0,
+                        )
+                      ],
                     ),
                     child: TextField(
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF342E37),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: 'NAME',
@@ -58,12 +76,27 @@ class RegisterScreen extends StatelessWidget {
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 40),
                     padding: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
+                    decoration: ShapeDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      shadows: [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 4),
+                          spreadRadius: 0,
+                        )
+                      ],
                     ),
                     child: TextField(
-                      obscureText: true,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF342E37),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: 'EMAIL',
@@ -76,12 +109,27 @@ class RegisterScreen extends StatelessWidget {
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 40),
                     padding: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
+                    decoration: ShapeDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      shadows: [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 4),
+                          spreadRadius: 0,
+                        )
+                      ],
                     ),
                     child: TextField(
-                      obscureText: true,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF342E37),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: 'USERNAME',
@@ -94,12 +142,27 @@ class RegisterScreen extends StatelessWidget {
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 40),
                     padding: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
+                    decoration: ShapeDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      shadows: [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 4),
+                          spreadRadius: 0,
+                        )
+                      ],
                     ),
                     child: TextField(
-                      obscureText: true,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF342E37),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: 'PASSWORD',
@@ -112,12 +175,27 @@ class RegisterScreen extends StatelessWidget {
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 40),
                     padding: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
+                    decoration: ShapeDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      shadows: [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 4),
+                          spreadRadius: 0,
+                        )
+                      ],
                     ),
                     child: TextField(
-                      obscureText: true,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF342E37),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: 'CONFIRM PASSWORD',
@@ -126,30 +204,31 @@ class RegisterScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 24),
 
-                  // Register Text (Style sama dengan welcome text)
+                  // Login Text
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
-                        context, 
-                        MaterialPageRoute(builder: (context) => const LoginScreen()
-                        ),
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const LoginScreen()),
                       );
                     },
                     child: RichText(
                       text: TextSpan(
                         text: "Already have an account, Bud? ",
-                        style: TextStyle(
-                          fontSize: 18, // Ukuran disamakan
-                          fontWeight: FontWeight.bold, // Bold disamakan
-                          color: Colors.black,
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFF342E37),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
                         ),
                         children: [
                           TextSpan(
                             text: 'Login',
-                            style: TextStyle(
-                              fontSize: 18, // Ukuran disamakan
-                              fontWeight: FontWeight.bold, // Bold disamakan
-                              color: Color(0xFF9D8DF1), // Warna ungu
+                            style: GoogleFonts.poppins(
+                              color: const Color(0xFF9D8DF1),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                               decoration: TextDecoration.underline,
                             ),
                           ),
@@ -164,20 +243,28 @@ class RegisterScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.yellow,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(30),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 50, vertical: 10),
                     ),
                     onPressed: () {
-                      Navigator.pushReplacement(
-                        context, 
-                        MaterialPageRoute(builder: (context) => const LoginScreen()
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) => const LoginScreen(),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
                         ),
                       );
                     },
                     child: Text(
                       'REGISTER',
-                      style: TextStyle(color: Colors.black),
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                      color: const Color(0xFF342E37),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,                      ),
                     ),
                   ),
                 ],

@@ -1,5 +1,5 @@
-import 'package:bugo_mobile/screens/target-screen/target_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../auth-screen/profile_screen.dart';
 import '../home-screen/home_screen.dart';
 
@@ -11,29 +11,46 @@ class InputTargetScreenStep2 extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
+          Container(
+            color: const Color(0xFFBCFDF7),
+          ),
+
           Positioned.fill(
-            child: Image.asset(
-              'assets/bg-screen.png',
-              fit: BoxFit.cover,
+            child: Column(
+              children: [
+                ClipPath(
+                  clipper: TopCurveClipper(),
+                  child: Container(
+                    height: 300,
+                    color: const Color(0xFFE13D56),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    color: const Color(0xFFBCFDF7),
+                  ),
+                ),
+              ],
             ),
           ),
 
-          // **Konten Utama**
+          // Konten Utama
           Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const SizedBox(height: 90), // Jarak atas untuk "Hey, User!"
-              const Center(
+              Center(
                 child: Text(
                   'Choose your risk level!',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.poppins(
                     color: Colors.white,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    height: 1.54,
                   ),
                 ),
               ),
-              const SizedBox(height: 25), // Jarak antara teks dan form
+              const SizedBox(height: 25),
 
               Expanded(
                 child: SingleChildScrollView(
@@ -47,109 +64,177 @@ class InputTargetScreenStep2 extends StatelessWidget {
                           print('Conservative selected');
                         },
                         child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                          decoration: BoxDecoration(
+                          width: 353,
+                          height: 60,
+                          decoration: ShapeDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(25),
-                            boxShadow: [
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            shadows: [
                               BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 5,
-                                offset: Offset(0, 2),
-                              ),
+                                color: Color(0x3F000000),
+                                blurRadius: 4,
+                                offset: Offset(0, 4),
+                                spreadRadius: 0,
+                              )
                             ],
                           ),
                           child: Center(
-                            child: Text(
-                              'Conservative (Low Risk)\nSafe & stable savings, minimal risk.',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.normal,
-                                fontSize: 12,
-                                color: Colors.black87,
+                            child: Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'Conservative (Low Risk)\n',
+                                    style: TextStyle(
+                                      color: Color(0xFF342E37),
+                                      fontSize: 12,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        'Safe & stable savings, minimal risk.',
+                                    style: TextStyle(
+                                      color: Color(0xFF342E37),
+                                      fontSize: 12,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
                               ),
+                              textAlign:
+                                  TextAlign.center, // Pastikan teks di tengah
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 40),
 
+                      // Moderate field
                       GestureDetector(
                         onTap: () {
-                          print('Conservative selected');
+                          print('Moderate selected');
                         },
                         child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                          decoration: BoxDecoration(
+                          width: 353,
+                          height: 60,
+                          decoration: ShapeDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(25),
-                            boxShadow: [
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            shadows: [
                               BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 5,
-                                offset: Offset(0, 2),
-                              ),
+                                color: Color(0x3F000000),
+                                blurRadius: 4,
+                                offset: Offset(0, 4),
+                                spreadRadius: 0,
+                              )
                             ],
                           ),
                           child: Center(
-                            child: Text(
-                              'Moderate (Medium Risk)\nBalanced approach, mix of savings & investments.',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.normal,
-                                fontSize: 12,
-                                color: Colors.black87,
+                            child: Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'Moderate (Medium Risk)\n',
+                                    style: TextStyle(
+                                      color: Color(0xFF342E37),
+                                      fontSize: 12,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        'Balanced approach, mix of savings & investments.',
+                                    style: TextStyle(
+                                      color: Color(0xFF342E37),
+                                      fontSize: 12,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
                               ),
+                              textAlign:
+                                  TextAlign.center, // Pastikan teks di tengah
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 40),
+
+                      // Aggresive field
                       GestureDetector(
                         onTap: () {
-                          print('Conservative selected');
+                          print('Aggresive selected');
                         },
                         child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                          decoration: BoxDecoration(
+                          width: 353,
+                          height: 60,
+                          decoration: ShapeDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(25),
-                            boxShadow: [
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            shadows: [
                               BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 5,
-                                offset: Offset(0, 2),
-                              ),
+                                color: Color(0x3F000000),
+                                blurRadius: 4,
+                                offset: Offset(0, 4),
+                                spreadRadius: 0,
+                              )
                             ],
                           ),
                           child: Center(
-                            child: Text(
-                              'Aggressive (High Risk)\nHigh-growth potential, higher risk involved.',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.normal,
-                                fontSize: 12,
-                                color: Colors.black87,
+                            child: Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'Aggressive (High Risk)\n',
+                                    style: TextStyle(
+                                      color: Color(0xFF342E37),
+                                      fontSize: 12,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        'High-growth potential, higher risk involved.',
+                                    style: TextStyle(
+                                      color: Color(0xFF342E37),
+                                      fontSize: 12,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
                               ),
+                              textAlign:
+                                  TextAlign.center, // Pastikan teks di tengah
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 100),
+                      const SizedBox(height: 125),
 
                       // **Copyright**
                       Text(
                         'BUGO these risk level based on deep research!',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold
-                        ),
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                            color: const Color(0xFF342E37),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
                       ),
-                      const SizedBox(height: 50), // Jarak agar tidak menempel ke navigasi
+                      const SizedBox(
+                          height: 50), // Jarak agar tidak menempel ke navigasi
                     ],
                   ),
                 ),
@@ -157,7 +242,7 @@ class InputTargetScreenStep2 extends StatelessWidget {
             ],
           ),
 
-          // **Navigasi Bawah**
+          // Navigasi Bawah
           Positioned(
             bottom: 10,
             left: 20,
@@ -175,40 +260,40 @@ class InputTargetScreenStep2 extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const HomeScreen()),
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) => const HomeScreen(),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
+                        ),
                       );
                     },
-                    child: const Icon(
-                      Icons.history,
-                      color: Colors.white,
-                      size: 30,
+                    child: Image.asset(
+                      'assets/icons/arrow.png',
+                      width: 33,
+                      height: 33,
                     ),
                   ),
-
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(context, 
-                      MaterialPageRoute(builder: (context) => const TargetScreen()),
-                      );
-                    },
-                    child: const Icon(
-                      Icons.account_balance_wallet,
-                      color: Colors.black, 
-                      size: 30,
-                    ),
+                  Image.asset(
+                    'assets/icons/wallet.png',
+                    width: 35,
+                    height: 35,
+                    color: const Color(0xFF342E37),
                   ),
-                    
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) => const ProfileScreen(),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
+                        ),
                       );
                     },
-                    child: const Icon(
-                      Icons.person,
-                      color: Colors.white, 
-                      size: 30,
+                    child: Image.asset(
+                      'assets/icons/person.png',
+                      width: 35,
+                      height: 35,
                     ),
                   ),
                 ],
@@ -219,4 +304,24 @@ class InputTargetScreenStep2 extends StatelessWidget {
       ),
     );
   }
+}
+
+class TopCurveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    path.lineTo(0, size.height - 100);
+    path.quadraticBezierTo(
+      size.width / 2,
+      size.height - 185,
+      size.width,
+      size.height - 100,
+    );
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../home-screen/home_screen.dart';
 import '../target-screen/target_screen.dart';
 import 'change_password_screen.dart';
@@ -11,29 +12,43 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
+          Container(
+            color: const Color(0xFFBCFDF7),
+          ),
+
           Positioned.fill(
-            child: Image.asset(
-              'assets/bg-screen.png',
-              fit: BoxFit.cover,
+            child: Column(
+              children: [
+                ClipPath(
+                  clipper: TopCurveClipper(),
+                  child: Container(
+                    height: 300,
+                    color: const Color(0xFFE13D56),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    color: const Color(0xFFBCFDF7),
+                  ),
+                ),
+              ],
             ),
           ),
 
           // **Konten Utama**
           Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const SizedBox(height: 90), // Jarak atas untuk "Hey, User!"
-              const Center(
-                child: Text(
-                  'Hey, User!',
-                  style: TextStyle(
+              const SizedBox(height: 75.5), 
+              Text(
+                'Hey, User!',
+                style: GoogleFonts.poppins(
                     fontSize: 32,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
                     color: Colors.white,
-                  ),
-                ),
+                    height: 1.25),
               ),
-              const SizedBox(height: 50), // Jarak antara teks dan form
+              const SizedBox(height: 50),
 
               Expanded(
                 child: SingleChildScrollView(
@@ -44,15 +59,29 @@ class ProfileScreen extends StatelessWidget {
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 40),
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(25),
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFFECFEFD),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          shadows: [
+                            BoxShadow(
+                              color: Color(0x3F000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 4),
+                              spreadRadius: 0,
+                            )
+                          ],
                         ),
                         child: TextField(
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF342E37),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
                           decoration: InputDecoration(
                             border: InputBorder.none,
-                            hintText: 'USERNAME',
-                            suffixIcon: EditableIcon(),
+                            hintText: 'Username',
                           ),
                         ),
                       ),
@@ -62,15 +91,29 @@ class ProfileScreen extends StatelessWidget {
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 40),
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(25),
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFFECFEFD),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          shadows: [
+                            BoxShadow(
+                              color: Color(0x3F000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 4),
+                              spreadRadius: 0,
+                            )
+                          ],
                         ),
-                        child: const TextField(
-                          decoration: InputDecoration(
+                        child: TextField(
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF342E37),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          decoration: const InputDecoration(
                             border: InputBorder.none,
-                            hintText: 'NAME',
-                            suffixIcon: EditableIcon(),
+                            hintText: 'Name',
                           ),
                         ),
                       ),
@@ -80,14 +123,29 @@ class ProfileScreen extends StatelessWidget {
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 40),
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(25),
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFFECFEFD),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          shadows: [
+                            BoxShadow(
+                              color: Color(0x3F000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 4),
+                              spreadRadius: 0,
+                            )
+                          ],
                         ),
-                        child: const TextField(
-                          decoration: InputDecoration(
+                        child: TextField(
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF342E37),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          decoration: const InputDecoration(
                             border: InputBorder.none,
-                            hintText: 'EMAIL',
+                            hintText: 'Email',
                           ),
                         ),
                       ),
@@ -97,39 +155,59 @@ class ProfileScreen extends StatelessWidget {
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 40),
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(25),
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFFECFEFD),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          shadows: [
+                            BoxShadow(
+                              color: Color(0x3F000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 4),
+                              spreadRadius: 0,
+                            )
+                          ],
                         ),
                         child: TextField(
                           obscureText: true,
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF342E37),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
                           decoration: InputDecoration(
                             border: InputBorder.none,
-                            hintText: 'PASSWORD',
+                            hintText: 'Password',
                             suffixIcon: IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.black, size: 15),
+                              icon: const Icon(Icons.edit,
+                                  color: Colors.black, size: 15),
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const ChangePasswordScreen()),
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const ChangePasswordScreen(),
+                                  ),
                                 );
                               },
-                            )
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 50), // Jarak antara form dan copyright
+                      const SizedBox(height: 100), 
 
-                      // **Copyright**
+                      // Copyright Text
                       Text(
                         'Copyright© BUGO2025',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFF342E37),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 50), // Jarak agar tidak menempel ke navigasi
+                        const SizedBox(height: 50),
                     ],
                   ),
                 ),
@@ -137,9 +215,9 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
 
-          // **Navigasi Bawah**
+          // Navigasi Bawah
           Positioned(
-            bottom: 10,
+            bottom: 10, 
             left: 20,
             right: 20,
             child: Container(
@@ -155,36 +233,42 @@ class ProfileScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const HomeScreen()),
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) => const HomeScreen(),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
+                        ),
                       );
                     },
-                    child: const Icon(
-                      Icons.history,
-                      color: Colors.white,
-                      size: 30,
+                    child: Image.asset(
+                      'assets/icons/arrow.png',
+                      width: 33,
+                      height: 33,
                     ),
                   ),
-                  // **Target**
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const TargetScreen()),
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) => TargetScreen(),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
+                        ),
                       );
                     },
-                    child: const Icon(
-                      Icons.account_balance_wallet,
-                      color: Colors.white,
-                      size: 30,
+                    child: Image.asset(
+                      'assets/icons/wallet.png',
+                      width: 35,
+                      height: 35,
                     ),
                   ),
-
-                  // **Profile**
-                  const Icon(
-                    Icons.person,
-                    color: Colors.black,
-                    size: 30,
-                    ),
+                  Image.asset(
+                    'assets/icons/person.png',
+                    width: 35,
+                    height: 35,
+                    color: const Color(0xFF342E37),
+                  ),
                 ],
               ),
             ),
@@ -195,33 +279,22 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-class EditableIcon extends StatefulWidget {
-  const EditableIcon({super.key});
-
+class TopCurveClipper extends CustomClipper<Path> {
   @override
-  _EditableIconState createState() => _EditableIconState();
-}
-
-class _EditableIconState extends State<EditableIcon> {
-  bool isEditing = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          isEditing = !isEditing; // Toggle antara ikon edit dan centang
-        });
-      },
-      child: CircleAvatar(
-        radius: 5,
-        backgroundColor: isEditing ? Colors.black : Colors.transparent,
-        child: Icon(
-          isEditing ? Icons.check : Icons.edit,
-          color: isEditing ? Colors.white : Colors.black,
-          size: 15,
-        ),
-      ),
+  Path getClip(Size size) {
+    Path path = Path();
+    path.lineTo(0, size.height - 100);
+    path.quadraticBezierTo(
+      size.width / 2,
+      size.height - 185,
+      size.width,
+      size.height - 100,
     );
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
   }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }

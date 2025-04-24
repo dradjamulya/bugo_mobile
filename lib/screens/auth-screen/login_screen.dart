@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../home-screen/home_screen.dart';
 import 'register_screen.dart';
 
@@ -30,10 +31,10 @@ class LoginScreen extends StatelessWidget {
                   // Welcome Text
                   Text(
                     "It's nice to have you back, Bud!",
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
+                      color: const Color(0xFF342E37),
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   SizedBox(height: 24),
@@ -42,11 +43,27 @@ class LoginScreen extends StatelessWidget {
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 40),
                     padding: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
+                    decoration: ShapeDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(25),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      shadows: [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 4),
+                          spreadRadius: 0,
+                        )
+                      ],
                     ),
                     child: TextField(
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF342E37),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: 'USERNAME',
@@ -59,11 +76,27 @@ class LoginScreen extends StatelessWidget {
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 40),
                     padding: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
+                    decoration: ShapeDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(25),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      shadows: [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 4),
+                          spreadRadius: 0,
+                        )
+                      ],
                     ),
                     child: TextField(
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF342E37),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
                       obscureText: true,
                       decoration: InputDecoration(
                         border: InputBorder.none,
@@ -77,25 +110,25 @@ class LoginScreen extends StatelessWidget {
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
-                        context, 
-                        MaterialPageRoute(builder: (context) => const RegisterScreen()
-                        ),
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const RegisterScreen()),
                       );
                     },
                     child: RichText(
                       text: TextSpan(
                         text: "Don’t have an account, Bud? ",
-                        style: TextStyle(
-                          fontSize: 18, // Ukuran disamakan
-                          fontWeight: FontWeight.bold, // Bold disamakan
-                          color: Colors.black,
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFF342E37),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
                         children: [
                           TextSpan(
                             text: 'Register',
-                            style: TextStyle(
-                              fontSize: 18, // Ukuran disamakan
-                              fontWeight: FontWeight.bold, // Bold disamakan
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600, // Bold disamakan
                               color: Color(0xFF9D8DF1), // Warna ungu
                               decoration: TextDecoration.underline,
                             ),
@@ -111,20 +144,26 @@ class LoginScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.yellow,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(30),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 50, vertical: 10),
                     ),
                     onPressed: () {
                       Navigator.pushReplacement(
-                        context, 
-                        MaterialPageRoute(builder: (context) => const HomeScreen()
-                        ),
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const HomeScreen()),
                       );
                     },
                     child: Text(
                       'LOG IN',
-                      style: TextStyle(color: Colors.black),
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF342E37),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
