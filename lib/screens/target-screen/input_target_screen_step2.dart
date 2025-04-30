@@ -61,7 +61,6 @@ class InputTargetScreenStep2 extends StatelessWidget {
                       // Conservative Field
                       GestureDetector(
                         onTap: () {
-                          print('Conservative selected');
                         },
                         child: Container(
                           width: 353,
@@ -116,7 +115,6 @@ class InputTargetScreenStep2 extends StatelessWidget {
                       // Moderate field
                       GestureDetector(
                         onTap: () {
-                          print('Moderate selected');
                         },
                         child: Container(
                           width: 353,
@@ -171,7 +169,6 @@ class InputTargetScreenStep2 extends StatelessWidget {
                       // Aggresive field
                       GestureDetector(
                         onTap: () {
-                          print('Aggresive selected');
                         },
                         child: Container(
                           width: 353,

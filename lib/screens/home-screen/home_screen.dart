@@ -1,12 +1,37 @@
-import 'package:bugo_mobile/screens/home-screen/next_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'next_page.dart';
+import 'saving.dart';
 import '../target-screen/target_screen.dart';
 import '../auth-screen/profile_screen.dart';
-import 'saving.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String username = '';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUsername();
+  }
+
+  Future<void> fetchUsername() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      setState(() {
+        username = doc['username'];
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +67,7 @@ class HomeScreen extends StatelessWidget {
             children: [
               SizedBox(height: 55),
               Text(
-                'Hey, User!',
+                'Hey, $username!',
                 style: GoogleFonts.poppins(
                   fontSize: 32,
                   fontWeight: FontWeight.w800,
@@ -148,7 +173,7 @@ class HomeScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => NextPage(), // Ganti CreateSavingScreen() dengan page yang kamu mau
+                            builder: (context) => NextPage(),
                           ),
                         );
                       },

@@ -1,11 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../home-screen/home_screen.dart';
 import '../target-screen/target_screen.dart';
 import 'change_password_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String username = '';
+  String name = '';
+  String email = '';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserData();
+  }
+
+  Future<void> fetchUserData() async {
+    try {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+        setState(() {
+          username = doc['username'];
+          name = doc['name'];
+          email = doc['email'];
+        });
+      }
+    } catch (e) {
+      print('Error fetching user data: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,18 +69,18 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          // **Konten Utama**
           Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const SizedBox(height: 75.5), 
+              const SizedBox(height: 75.5),
               Text(
-                'Hey, User!',
+                'Hey, ${username.isNotEmpty ? username : ""}!',
                 style: GoogleFonts.poppins(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    height: 1.25),
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  height: 1.25,
+                ),
               ),
               const SizedBox(height: 50),
 
@@ -56,99 +90,18 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       const SizedBox(height: 100),
                       // Username Field
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 40),
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        decoration: ShapeDecoration(
-                          color: const Color(0xFFECFEFD),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          shadows: [
-                            BoxShadow(
-                              color: Color(0x3F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                              spreadRadius: 0,
-                            )
-                          ],
-                        ),
-                        child: TextField(
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF342E37),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Username',
-                          ),
-                        ),
-                      ),
+                      buildTextField(hint: username.isNotEmpty ? username : 'Username'),
+
                       const SizedBox(height: 28),
 
                       // Name Field
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 40),
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        decoration: ShapeDecoration(
-                          color: const Color(0xFFECFEFD),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          shadows: [
-                            BoxShadow(
-                              color: Color(0x3F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                              spreadRadius: 0,
-                            )
-                          ],
-                        ),
-                        child: TextField(
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF342E37),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Name',
-                          ),
-                        ),
-                      ),
+                      buildTextField(hint: name.isNotEmpty ? name : 'Name'),
+
                       const SizedBox(height: 28),
 
                       // Email Field
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 40),
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        decoration: ShapeDecoration(
-                          color: const Color(0xFFECFEFD),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          shadows: [
-                            BoxShadow(
-                              color: Color(0x3F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                              spreadRadius: 0,
-                            )
-                          ],
-                        ),
-                        child: TextField(
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF342E37),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Email',
-                          ),
-                        ),
-                      ),
+                      buildTextField(hint: email.isNotEmpty ? email : 'Email'),
+
                       const SizedBox(height: 28),
 
                       // Password Field
@@ -161,7 +114,7 @@ class ProfileScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(30),
                           ),
                           shadows: [
-                            BoxShadow(
+                            const BoxShadow(
                               color: Color(0x3F000000),
                               blurRadius: 4,
                               offset: Offset(0, 4),
@@ -180,14 +133,12 @@ class ProfileScreen extends StatelessWidget {
                             border: InputBorder.none,
                             hintText: 'Password',
                             suffixIcon: IconButton(
-                              icon: const Icon(Icons.edit,
-                                  color: Colors.black, size: 15),
+                              icon: const Icon(Icons.edit, color: Colors.black, size: 15),
                               onPressed: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        const ChangePasswordScreen(),
+                                    builder: (context) => const ChangePasswordScreen(),
                                   ),
                                 );
                               },
@@ -195,9 +146,10 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 100), 
 
-                      // Copyright Text
+                      const SizedBox(height: 100),
+
+                      // Copyright
                       Text(
                         'Copyright© BUGO2025',
                         textAlign: TextAlign.center,
@@ -205,9 +157,9 @@ class ProfileScreen extends StatelessWidget {
                           color: const Color(0xFF342E37),
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          ),
                         ),
-                        const SizedBox(height: 50),
+                      ),
+                      const SizedBox(height: 50),
                     ],
                   ),
                 ),
@@ -215,9 +167,9 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
 
-          // Navigasi Bawah
+          // Bottom Navigation
           Positioned(
-            bottom: 10, 
+            bottom: 10,
             left: 20,
             right: 20,
             child: Container(
@@ -274,6 +226,39 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Helper function untuk TextField yang seragam
+  Widget buildTextField({required String hint}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 40),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: ShapeDecoration(
+        color: const Color(0xFFECFEFD),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+        shadows: [
+          const BoxShadow(
+            color: Color(0x3F000000),
+            blurRadius: 4,
+            offset: Offset(0, 4),
+            spreadRadius: 0,
+          )
+        ],
+      ),
+      child: TextField(
+        style: GoogleFonts.poppins(
+          color: const Color(0xFF342E37),
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+        ),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          hintText: hint,
+        ),
       ),
     );
   }

@@ -1,14 +1,75 @@
-import 'package:bugo_mobile/screens/target-screen/input_screen.dart';
-import 'package:google_fonts/google_fonts.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../auth-screen/profile_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../home-screen/home_screen.dart';
+import '../auth-screen/profile_screen.dart';
 
-class InputSavingsScreen extends StatelessWidget {
+class InputSavingsScreen extends StatefulWidget {
   const InputSavingsScreen({super.key});
 
-@override
+  @override
+  State<InputSavingsScreen> createState() => _InputSavingsScreenState();
+}
+
+class _InputSavingsScreenState extends State<InputSavingsScreen> {
+  final _amountController = TextEditingController();
+  final _firestore = FirebaseFirestore.instance;
+  final _auth = FirebaseAuth.instance;
+
+  String? _selectedTargetId;
+  Map<String, String> _targets = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTargets();
+  }
+
+  Future<void> _fetchTargets() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final query = await _firestore
+        .collection('targets')
+        .where('user_id', isEqualTo: user.uid)
+        .get();
+
+    Map<String, String> fetchedTargets = {};
+    for (var doc in query.docs) {
+      fetchedTargets[doc.id] = doc['target_name'];
+    }
+
+    setState(() {
+      _targets = fetchedTargets;
+      if (_targets.isNotEmpty) {
+        _selectedTargetId = _targets.keys.first;
+      }
+    });
+  }
+
+  Future<void> _saveSavings() async {
+    final user = _auth.currentUser;
+    if (user == null || _selectedTargetId == null) return;
+
+    final amount = int.tryParse(_amountController.text.trim());
+    if (amount == null) return;
+
+    await _firestore.collection('savings').add({
+      'user_id': user.uid,
+      'target_id': _selectedTargetId,
+      'amount': amount,
+      'timestamp': Timestamp.now(),
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Savings saved successfully")),
+    );
+
+    Navigator.pop(context); // Atau ganti ke halaman lain jika perlu
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SizedBox(
@@ -16,128 +77,125 @@ class InputSavingsScreen extends StatelessWidget {
         height: double.infinity,
         child: Stack(
           children: [
-            Container(
-              color: const Color(0xFFBCFDF7),
-            ),
+            Container(color: const Color(0xFFBCFDF7)),
 
             Positioned.fill(
               child: Column(
                 children: [
                   ClipPath(
                     clipper: TopCurveClipper(),
-                    child: Container(
-                      height: 250,
-                      color: const Color(0xFFE13D56),
-                    ),
+                    child: Container(height: 250, color: const Color(0xFFE13D56)),
                   ),
-                  Expanded(
-                    child: Container(
-                      color: const Color(0xFFBCFDF7),
-                    ),
-                  ),
+                  Expanded(child: Container(color: const Color(0xFFBCFDF7))),
                 ],
               ),
             ),
 
-            // Login Form
             Center(
-              child: Column(
-                children: [
-                  SizedBox(height: 170),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 170),
 
-                  // Add amount field
-                  Container(
-                    margin: EdgeInsets.symmetric(horizontal: 40),
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: ShapeDecoration(
-                      color: const Color(0xFFECFEFD),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+                    // Input Amount
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: ShapeDecoration(
+                        color: const Color(0xFFECFEFD),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        shadows: const [
+                          BoxShadow(
+                            color: Color(0x3F000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 4),
+                          )
+                        ],
                       ),
-                      shadows: [
-                        BoxShadow(
-                          color: Color(0x3F000000),
-                          blurRadius: 4,
-                          offset: Offset(0, 4),
-                          spreadRadius: 0,
-                        )
-                      ],
-                    ),
                       child: TextField(
+                        controller: _amountController,
+                        keyboardType: TextInputType.number,
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                        color: const Color(0xFF342E37),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                      ),
-                        decoration: InputDecoration(
+                        style: GoogleFonts.poppins(fontSize: 12),
+                        decoration: const InputDecoration(
                           border: InputBorder.none,
                           hintText: 'Add Amount',
                         ),
                       ),
                     ),
-                    SizedBox(height: 30),
+                    const SizedBox(height: 30),
 
-                  // Choose target to alocate savings field
-                  Container(
-                    margin: EdgeInsets.symmetric(horizontal: 40),
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: ShapeDecoration(
-                      color: const Color(0xFFECFEFD),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      shadows: [
-                        BoxShadow(
-                          color: Color(0x3F000000),
-                          blurRadius: 4,
-                          offset: Offset(0, 4),
-                          spreadRadius: 0,
-                        )
-                      ],
-                    ),
-                    child: TextField(
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xFF342E37),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                      ),                      
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'Choose Target to Alocate Savings',
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 400),
-
-                  // Save
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.yellow,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-                    ),
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context, 
-                        MaterialPageRoute(builder: (context) => const InputScreen()
+                    // Dropdown Target
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: ShapeDecoration(
+                        color: const Color(0xFFECFEFD),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
                         ),
-                      );
-                    },
-                    child: Text(
-                      'Save',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xFF342E37),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        shadows: const [
+                          BoxShadow(
+                            color: Color(0x3F000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 4),
+                          )
+                        ],
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          value: _selectedTargetId,
+                          items: _targets.entries
+                              .map((entry) => DropdownMenuItem<String>(
+                                    value: entry.key,
+                                    child: Center(
+                                      child: Text(
+                                        entry.value,
+                                        style: GoogleFonts.poppins(fontSize: 12),
+                                      ),
+                                    ),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedTargetId = value;
+                            });
+                          },
+                          hint: Center(
+                            child: Text(
+                              'Choose Target to Allocate Savings',
+                              style: GoogleFonts.poppins(fontSize: 12),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 50),
+
+                    // Save Button
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.yellow,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                      ),
+                      onPressed: _saveSavings,
+                      child: Text(
+                        'Save',
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFF342E37),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -147,8 +205,7 @@ class InputSavingsScreen extends StatelessWidget {
               left: 20,
               right: 20,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE13D56),
                   borderRadius: BorderRadius.circular(30),
@@ -167,11 +224,7 @@ class InputSavingsScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      child: Image.asset(
-                        'assets/icons/arrow.png',
-                        width: 33,
-                        height: 33,
-                      ),
+                      child: Image.asset('assets/icons/arrow.png', width: 33, height: 33),
                     ),
                     Image.asset(
                       'assets/icons/wallet.png',
@@ -190,11 +243,7 @@ class InputSavingsScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      child: Image.asset(
-                        'assets/icons/person.png',
-                        width: 35,
-                        height: 35,
-                      ),
+                      child: Image.asset('assets/icons/person.png', width: 35, height: 35),
                     ),
                   ],
                 ),

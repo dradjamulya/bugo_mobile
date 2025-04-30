@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "392465777417",
+    "project_id": "bugo-mobile-7a60c",
+    "storage_bucket": "bugo-mobile-7a60c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:392465777417:android:dfdca67f8e39f8210009d8",
+        "android_client_info": {
+          "package_name": "com.example.bugo_mub_new"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCVx07ZJ3nCpNshTOFFsjFoAIq4dsz6gFk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,8 +1,11 @@
-import 'package:google_fonts/google_fonts.dart';
-import '../home-screen/home_screen.dart';
 import 'package:flutter/material.dart';
-import '../auth-screen/profile_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'input_screen.dart';
+import '../home-screen/home_screen.dart';
+import '../auth-screen/profile_screen.dart';
+import 'package:intl/intl.dart';
 
 class TargetScreen extends StatefulWidget {
   const TargetScreen({Key? key}) : super(key: key);
@@ -12,35 +15,45 @@ class TargetScreen extends StatefulWidget {
 }
 
 class _TargetScreenState extends State<TargetScreen> {
-  List<bool> isStarred = List.generate(7, (index) => false);
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  late Future<List<Map<String, dynamic>>> _targetData;
+
+  Future<List<Map<String, dynamic>>> fetchTargets() async {
+    final user = _auth.currentUser;
+    if (user == null) return [];
+
+    final snapshot = await _firestore
+        .collection('targets')
+        .where('user_id', isEqualTo: user.uid)
+        .get();
+    return snapshot.docs.map((doc) => doc.data()).toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _targetData = fetchTargets();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          Container(
-            color: const Color(0xFFBCFDF7),
-          ),
-
+          Container(color: const Color(0xFFBCFDF7)),
           ClipPath(
             clipper: BottomCurveClipper(),
-            child: Container(
-              height: 400,
-              color: const Color(0xFFE13D56),
-            ),
+            child: Container(height: 400, color: const Color(0xFFE13D56)),
           ),
-
-          // Scrollable content
           SingleChildScrollView(
             padding: const EdgeInsets.only(bottom: 120),
             child: Column(
               children: [
-                // Header Section
                 Container(
                   width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
                   child: Column(
                     children: [
                       const SizedBox(height: 35),
@@ -60,7 +73,6 @@ class _TargetScreenState extends State<TargetScreen> {
                                   color: Color(0x3F000000),
                                   blurRadius: 4,
                                   offset: Offset(0, 4),
-                                  spreadRadius: 0,
                                 )
                               ],
                             ),
@@ -86,29 +98,40 @@ class _TargetScreenState extends State<TargetScreen> {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      Text(
-                        'Rp999.000.000.000',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 34,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        'Rp999.000.000.000',
-                        style: GoogleFonts.poppins(
-                          color: const Color(0xFFFFED66),
-                          fontSize: 22,
-                          fontWeight: FontWeight.w400,
-                        ),
+                      FutureBuilder<List<Map<String, dynamic>>>(
+                        future: _targetData,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          }
+                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return Text(
+                              'No Target Available',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 34,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            );
+                          }
+                          final totalAmount = snapshot.data!.fold<int>(
+                            0,
+                            (sum, target) => sum + target['target_amount'] as int,
+                          );
+                          return Text(
+                            'Rp${NumberFormat('#,###').format(totalAmount)}',
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 34,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 20),
                     ],
                   ),
                 ),
-
-                // Tombol Plus
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -122,10 +145,7 @@ class _TargetScreenState extends State<TargetScreen> {
                     decoration: ShapeDecoration(
                       color: Colors.white,
                       shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                          width: 5,
-                          color: const Color(0xFFE13D56),
-                        ),
+                        side: BorderSide(width: 5, color: const Color(0xFFE13D56)),
                         borderRadius: BorderRadius.circular(30),
                       ),
                       shadows: [
@@ -133,7 +153,6 @@ class _TargetScreenState extends State<TargetScreen> {
                           color: Color(0x3F000000),
                           blurRadius: 4,
                           offset: Offset(0, 4),
-                          spreadRadius: 0,
                         )
                       ],
                     ),
@@ -147,110 +166,106 @@ class _TargetScreenState extends State<TargetScreen> {
                     ),
                   ),
                 ),
-
-                // List Target
-                ListView.builder(
-                  physics: NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: 7,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                      child: Container(
-                        width: 401,
-                        height: 133,
-                        decoration: ShapeDecoration(
-                          color: const Color(0xFFECFEFD),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                FutureBuilder<List<Map<String, dynamic>>>(
+                  future: _targetData,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator();
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No Targets',
+                          style: GoogleFonts.poppins(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
                           ),
-                          shadows: [
-                            BoxShadow(
-                              color: Color(0x3F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                              spreadRadius: 0,
-                            )
-                          ],
                         ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 18, vertical: 15),
-                          title: Text(
-                            'Mobil',
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xFF342E37),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 2),
-                              RichText(
-                                text: TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: 'Rp999.000.000.000\n',
-                                      style: TextStyle(
-                                        color: const Color(0xFF342E37),
-                                        fontSize: 16,
-                                        fontFamily: 'Poppins',
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text: '/ Rp999.000.000.000',
-                                      style: TextStyle(
-                                        color: const Color(0xFF9D8DF1),
-                                        fontSize: 16,
-                                        fontFamily: 'Poppins',
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                      );
+                    }
+                    return ListView.builder(
+                      physics: NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        final target = snapshot.data![index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          child: Container(
+                            width: 401,
+                            height: 133,
+                            decoration: ShapeDecoration(
+                              color: const Color(0xFFECFEFD),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
                               ),
-                              const SizedBox(height: 5),
-                              Text(
-                                'Completion Plan : 2027',
+                              shadows: [
+                                BoxShadow(
+                                  color: Color(0x3F000000),
+                                  blurRadius: 4,
+                                  offset: Offset(0, 4),
+                                )
+                              ],
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+                              title: Text(
+                                target['target_name'],
                                 style: GoogleFonts.poppins(
                                   color: const Color(0xFF342E37),
-                                  fontSize: 12,
-                                  fontStyle: FontStyle.italic,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
-                            ],
-                          ),
-                          trailing: IconButton(
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            icon: Icon(
-                              isStarred[index] ? Icons.star : Icons.star_border,
-                              color: isStarred[index]
-                                  ? Colors.yellow
-                                  : Colors.black,
-                              size: 47,
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 2),
+                                  RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: 'Rp${NumberFormat('#,###').format(target['target_amount'])}\n',
+                                          style: TextStyle(
+                                            color: const Color(0xFF342E37),
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: '/ Rp${NumberFormat('#,###').format(target['target_amount'])}',
+                                          style: TextStyle(
+                                            color: const Color(0xFF9D8DF1),
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    'Completion Plan : ${target['target_deadline']}',
+                                    style: GoogleFonts.poppins(
+                                      color: const Color(0xFF342E37),
+                                      fontSize: 12,
+                                      fontStyle: FontStyle.italic,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            onPressed: () {
-                              setState(() {
-                                isStarred[index] = !isStarred[index];
-                              });
-                            },
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     );
                   },
                 ),
               ],
             ),
           ),
-
-          // Navigasi Bawah
           Positioned(
             bottom: 10,
             left: 20,
