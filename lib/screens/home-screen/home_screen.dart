@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'next_page.dart';
-import 'saving.dart';
+import 'saving_screen.dart';
 import '../target-screen/target_screen.dart';
 import '../auth-screen/profile_screen.dart';
 
@@ -82,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => Saving(),
+                      builder: (context) => SavingScreen(),
                     ),
                   );
                 },
@@ -173,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => NextPage(),
+                            builder: (context) => TargetScreen(),
                           ),
                         );
                       },

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class Saving extends StatelessWidget {
-  const Saving({super.key});
+class SavingScreen extends StatelessWidget {
+  const SavingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Saving'),
+        title: Text('SavingScreen'),
         backgroundColor: Color(0xFFE13D56),
       ),
       body: Center(

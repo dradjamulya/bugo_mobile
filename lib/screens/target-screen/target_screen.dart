@@ -166,6 +166,7 @@ class _TargetScreenState extends State<TargetScreen> {
                     ),
                   ),
                 ),
+                
                 FutureBuilder<List<Map<String, dynamic>>>(
                   future: _targetData,
                   builder: (context, snapshot) {

@@ -1,7 +1,6 @@
-import 'package:bugo_mobile/screens/target-screen/input_savings_screen.dart';
-import 'package:bugo_mobile/screens/target-screen/input_target_screen_step1.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'input_savings_target_screen.dart';
 import 'input_target_screen_step1.dart';
 import '../home-screen/home_screen.dart';
 import '../auth-screen/profile_screen.dart';
