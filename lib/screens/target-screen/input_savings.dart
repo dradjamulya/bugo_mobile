@@ -1,9 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import '../home-screen/home_screen.dart';
 import '../auth-screen/profile_screen.dart';
 
@@ -18,9 +17,6 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
   final _amountController = TextEditingController();
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
-
-  final _currencyFormatter =
-      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
 
   String? _selectedTargetId;
   Map<String, String> _targets = {};
@@ -53,13 +49,16 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
     });
   }
 
+  int parseRupiah(String value) {
+    return int.tryParse(value.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+  }
+
   Future<void> _saveSavings() async {
     final user = _auth.currentUser;
     if (user == null || _selectedTargetId == null) return;
 
-    final rawAmount = _amountController.text.replaceAll(RegExp(r'[^0-9]'), '');
-    final amount = int.tryParse(rawAmount);
-    if (amount == null) return;
+    final amount = parseRupiah(_amountController.text.trim());
+    if (amount == 0) return;
 
     await _firestore.collection('savings').add({
       'user_id': user.uid,
@@ -72,7 +71,7 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
       const SnackBar(content: Text("Savings saved successfully")),
     );
 
-    Navigator.pop(context);
+    Navigator.pop(context); // Atau ganti ke halaman lain jika perlu
   }
 
   @override
@@ -101,6 +100,7 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
+                    const SizedBox(height: 170),
 
                     // Input Amount
                     Container(
@@ -123,8 +123,12 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
                         controller: _amountController,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          CurrencyInputFormatter(_currencyFormatter),
+                          CurrencyInputFormatter(
+                            leadingSymbol: 'Rp',
+                            useSymbolPadding: true,
+                            thousandSeparator: ThousandSeparator.Period,
+                            mantissaLength: 0,
+                          ),
                         ],
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(fontSize: 12),
@@ -187,7 +191,7 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
                     // Save Button
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFFFED66),
+                        backgroundColor: Colors.yellow,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
@@ -283,23 +287,4 @@ class TopCurveClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
-}
-
-class CurrencyInputFormatter extends TextInputFormatter {
-  final NumberFormat formatter;
-
-  CurrencyInputFormatter(this.formatter);
-
-  @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    if (newValue.text.isEmpty) return newValue;
-
-    int value = int.tryParse(newValue.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-    String newText = formatter.format(value);
-
-    return TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(offset: newText.length),
-    );
-  }
 }

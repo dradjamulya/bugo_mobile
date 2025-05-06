@@ -1,44 +1,180 @@
+import 'package:bugo_mobile/screens/target-screen/target_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../auth-screen/profile_screen.dart';
 import '../home-screen/home_screen.dart';
+import 'input_target_screen_step1.dart';
 
 class InputTargetScreenStep2 extends StatelessWidget {
-  const InputTargetScreenStep2({super.key});
+  final Map<String, dynamic> targetData;
+
+  const InputTargetScreenStep2({super.key, required this.targetData});
+
+  Future<void> saveTargetWithRisk(BuildContext context, String riskLevel) async {
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    try {
+      await _firestore.collection('targets').add({
+        ...targetData,
+        'user_id': user.uid,
+        'created_at': FieldValue.serverTimestamp(),
+        'is_favorite': false,
+        'risk_level': riskLevel,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Target saved with $riskLevel risk level.')),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const TargetScreen()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save target: $e')),
+      );
+    }
+  }
+
+  Widget riskOption({
+    required String title,
+    required String description,
+    required String level,
+    required BuildContext context,
+  }) {
+    return GestureDetector(
+      onTap: () => saveTargetWithRisk(context, level),
+      child: Container(
+        width: 353,
+        margin: const EdgeInsets.only(bottom: 40),
+        padding: const EdgeInsets.all(12),
+        decoration: ShapeDecoration(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          shadows: const [
+            BoxShadow(
+              color: Color(0x3F000000),
+              blurRadius: 4,
+              offset: Offset(0, 4),
+              spreadRadius: 0,
+            )
+          ],
+        ),
+
+        child: Center(
+          child: Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: '$title\n',
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFF342E37),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                TextSpan(
+                  text: description,
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFF342E37),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          Container(
-            color: const Color(0xFFBCFDF7),
-          ),
-
+          Container(color: const Color(0xFFBCFDF7)),
           Positioned.fill(
             child: Column(
               children: [
                 ClipPath(
                   clipper: TopCurveClipper(),
                   child: Container(
-                    height: 300,
+                    height: 320,
                     color: const Color(0xFFE13D56),
                   ),
                 ),
-                Expanded(
-                  child: Container(
-                    color: const Color(0xFFBCFDF7),
-                  ),
-                ),
+                Expanded(child: Container(color: const Color(0xFFBCFDF7))),
               ],
             ),
           ),
-
-          // Konten Utama
           Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const SizedBox(height: 90), // Jarak atas untuk "Hey, User!"
+              const SizedBox(height: 60),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const SizedBox(width: 20),
+                  GestureDetector(
+                    onTap: () {
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            transitionDuration:
+                                const Duration(milliseconds: 100),
+                            pageBuilder: (_, __, ___) =>
+                                const InputTargetScreenStep1(),
+                            transitionsBuilder: (_, animation, __, child) {
+                              final tween = Tween(
+                                      begin: const Offset(-1, 0),
+                                      end: Offset.zero)
+                                  .chain(CurveTween(curve: Curves.easeInOut));
+                              return SlideTransition(
+                                  position: animation.drive(tween),
+                                  child: child);
+                            },
+                          ),
+                        );
+                      },
+
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF342E37),
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x3F000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 4),
+                          )
+                        ],
+                      ),
+                      child: Text(
+                        'Back',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 25),
+
               Center(
                 child: Text(
                   'Choose your risk level!',
@@ -51,181 +187,40 @@ class InputTargetScreenStep2 extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 25),
-
+              
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      const SizedBox(height: 100),
-
-                      // Conservative Field
-                      GestureDetector(
-                        onTap: () {
-                        },
-                        child: Container(
-                          width: 353,
-                          height: 60,
-                          decoration: ShapeDecoration(
-                            color: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            shadows: [
-                              BoxShadow(
-                                color: Color(0x3F000000),
-                                blurRadius: 4,
-                                offset: Offset(0, 4),
-                                spreadRadius: 0,
-                              )
-                            ],
-                          ),
-                          child: Center(
-                            child: Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'Conservative (Low Risk)\n',
-                                    style: GoogleFonts.poppins(
-                                      color: Color(0xFF342E37),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text:
-                                        'Safe & stable savings, minimal risk.',
-                                    style: GoogleFonts.poppins(
-                                      color: Color(0xFF342E37),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              textAlign:
-                                  TextAlign.center, // Pastikan teks di tengah
-                            ),
-                          ),
-                        ),
+                      const SizedBox(height: 50),
+                      riskOption(
+                        title: 'Conservative (Low Risk)',
+                        description: 'Safe & stable savings, minimal risk.',
+                        level: 'conservative',
+                        context: context,
                       ),
-                      const SizedBox(height: 40),
-
-                      // Moderate field
-                      GestureDetector(
-                        onTap: () {
-                        },
-                        child: Container(
-                          width: 353,
-                          height: 60,
-                          decoration: ShapeDecoration(
-                            color: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            shadows: [
-                              BoxShadow(
-                                color: Color(0x3F000000),
-                                blurRadius: 4,
-                                offset: Offset(0, 4),
-                                spreadRadius: 0,
-                              )
-                            ],
-                          ),
-                          child: Center(
-                            child: Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'Moderate (Medium Risk)\n',
-                                    style: GoogleFonts.poppins(
-                                      color: Color(0xFF342E37),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text:
-                                        'Balanced approach, mix of savings & investments.',
-                                    style: GoogleFonts.poppins(
-                                      color: Color(0xFF342E37),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              textAlign:
-                                  TextAlign.center, // Pastikan teks di tengah
-                            ),
-                          ),
-                        ),
+                      riskOption(
+                        title: 'Moderate (Medium Risk)',
+                        description: 'Balanced approach, mix of savings & investments.',
+                        level: 'moderate',
+                        context: context,
                       ),
-                      const SizedBox(height: 40),
-
-                      // Aggresive field
-                      GestureDetector(
-                        onTap: () {
-                        },
-                        child: Container(
-                          width: 353,
-                          height: 60,
-                          decoration: ShapeDecoration(
-                            color: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            shadows: [
-                              BoxShadow(
-                                color: Color(0x3F000000),
-                                blurRadius: 4,
-                                offset: Offset(0, 4),
-                                spreadRadius: 0,
-                              )
-                            ],
-                          ),
-                          child: Center(
-                            child: Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'Aggressive (High Risk)\n',
-                                    style: GoogleFonts.poppins(
-                                      color: Color(0xFF342E37),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text:
-                                        'High-growth potential, higher risk involved.',
-                                    style: GoogleFonts.poppins(
-                                      color: Color(0xFF342E37),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              textAlign:
-                                  TextAlign.center, // Pastikan teks di tengah
-                            ),
-                          ),
-                        ),
+                      riskOption(
+                        title: 'Aggressive (High Risk)',
+                        description: 'High-growth potential, higher risk involved.',
+                        level: 'aggressive',
+                        context: context,
                       ),
-                      const SizedBox(height: 125),
-
-                      // **Copyright**
+                      const SizedBox(height: 80),
                       Text(
-                        'BUGO these risk level based on deep research!',
-                        textAlign: TextAlign.center,
+                        'BUGO chose these risk levels based on deep research!',
                         style: GoogleFonts.poppins(
-                            color: const Color(0xFF342E37),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          color: const Color(0xFF342E37),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                      const SizedBox(
-                          height: 50), // Jarak agar tidak menempel ke navigasi
+                      const SizedBox(height: 50),
                     ],
                   ),
                 ),
@@ -249,20 +244,12 @@ class InputTargetScreenStep2 extends StatelessWidget {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
-                        PageRouteBuilder(
-                          pageBuilder: (_, __, ___) => const HomeScreen(),
-                          transitionDuration: Duration.zero,
-                          reverseTransitionDuration: Duration.zero,
-                        ),
+                        MaterialPageRoute(builder: (_) => const HomeScreen()),
                       );
                     },
-                    child: Image.asset(
-                      'assets/icons/arrow.png',
-                      width: 33,
-                      height: 33,
-                    ),
+                    child: Image.asset('assets/icons/arrow.png', width: 33, height: 33),
                   ),
                   Image.asset(
                     'assets/icons/wallet.png',
@@ -272,20 +259,12 @@ class InputTargetScreenStep2 extends StatelessWidget {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
-                        PageRouteBuilder(
-                          pageBuilder: (_, __, ___) => const ProfileScreen(),
-                          transitionDuration: Duration.zero,
-                          reverseTransitionDuration: Duration.zero,
-                        ),
+                        MaterialPageRoute(builder: (_) => const ProfileScreen()),
                       );
                     },
-                    child: Image.asset(
-                      'assets/icons/person.png',
-                      width: 35,
-                      height: 35,
-                    ),
+                    child: Image.asset('assets/icons/person.png', width: 35, height: 35),
                   ),
                 ],
               ),

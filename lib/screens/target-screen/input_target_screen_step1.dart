@@ -1,12 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:bugo_mobile/screens/target-screen/target_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
-import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../auth-screen/profile_screen.dart';
-import '../home-screen/home_screen.dart';
-import '../target-screen/input_target_screen_step2.dart';
+import 'package:intl/intl.dart';
+import 'input_target_screen_step2.dart';
 
 class InputTargetScreenStep1 extends StatefulWidget {
   const InputTargetScreenStep1({super.key});
@@ -18,15 +15,15 @@ class InputTargetScreenStep1 extends StatefulWidget {
 class _InputTargetScreenStep1State extends State<InputTargetScreenStep1> {
   final TextEditingController targetNameController = TextEditingController();
   final TextEditingController targetAmountController = TextEditingController();
-  final TextEditingController targetDeadlineController = TextEditingController();
+  final TextEditingController targetDeadlineController =
+      TextEditingController();
   final TextEditingController monthlyIncomeController = TextEditingController();
-  final TextEditingController monthlyExpensesController = TextEditingController();
-  final TextEditingController dependentsCostController = TextEditingController();
+  final TextEditingController monthlyExpensesController =
+      TextEditingController();
+  final TextEditingController dependentsCostController =
+      TextEditingController();
   final TextEditingController emergencyFundController = TextEditingController();
   final TextEditingController totalDebtController = TextEditingController();
-
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   DateTime? selectedDeadline;
 
@@ -41,7 +38,7 @@ class _InputTargetScreenStep1State extends State<InputTargetScreenStep1> {
       firstDate: DateTime(2024),
       lastDate: DateTime(2100),
     );
-    if (picked != null && picked != selectedDeadline) {
+    if (picked != null) {
       setState(() {
         selectedDeadline = picked;
         targetDeadlineController.text = DateFormat('dd/MM/yyyy').format(picked);
@@ -49,10 +46,7 @@ class _InputTargetScreenStep1State extends State<InputTargetScreenStep1> {
     }
   }
 
-  Future<void> saveTargetData() async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
+  void goToStep2() {
     final targetName = targetNameController.text.trim();
     final targetAmount = parseRupiah(targetAmountController.text);
     final targetDeadline = targetDeadlineController.text.trim();
@@ -64,8 +58,7 @@ class _InputTargetScreenStep1State extends State<InputTargetScreenStep1> {
       return;
     }
 
-    await _firestore.collection('targets').add({
-      'user_id': user.uid,
+    final targetData = {
       'target_name': targetName,
       'target_amount': targetAmount,
       'target_deadline': targetDeadline,
@@ -74,13 +67,30 @@ class _InputTargetScreenStep1State extends State<InputTargetScreenStep1> {
       'dependents_cost': parseRupiah(dependentsCostController.text),
       'emergency_fund': parseRupiah(emergencyFundController.text),
       'total_debt': parseRupiah(totalDebtController.text),
-      'created_at': FieldValue.serverTimestamp(),
-      'is_favorite': false,
-    });
+    };
 
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const InputTargetScreenStep2()),
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 100),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            InputTargetScreenStep2(targetData: targetData),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+
+          final tween = Tween(begin: begin, end: end).chain(
+            CurveTween(curve: curve),
+          );
+          final offsetAnimation = animation.drive(tween);
+
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
+      ),
     );
   }
 
@@ -97,7 +107,6 @@ class _InputTargetScreenStep1State extends State<InputTargetScreenStep1> {
             color: Color(0x3F000000),
             blurRadius: 4,
             offset: Offset(0, 4),
-            spreadRadius: 0,
           )
         ],
       ),
@@ -107,9 +116,10 @@ class _InputTargetScreenStep1State extends State<InputTargetScreenStep1> {
         keyboardType: TextInputType.number,
         inputFormatters: isRupiah
             ? [
-                MoneyInputFormatter(
+                CurrencyInputFormatter(
                   leadingSymbol: 'Rp',
                   thousandSeparator: ThousandSeparator.Period,
+                  mantissaLength: 0,
                 )
               ]
             : [],
@@ -151,97 +161,116 @@ class _InputTargetScreenStep1State extends State<InputTargetScreenStep1> {
                 ],
               ),
             ),
-            Center(
-              child: SingleChildScrollView(
-                child: Column(
+            Column(
+              children: [
+                const SizedBox(height: 60),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 140),
-                    inputField('Target Name (Car, House, Etc)', targetNameController),
-                    const SizedBox(height: 25),
-                    inputField('Target Amount (Rp)', targetAmountController, isRupiah: true),
-                    const SizedBox(height: 25),
-                    inputField('Target Deadline (dd/MM/yyyy)', targetDeadlineController, isDate: true),
-                    const SizedBox(height: 25),
-                    inputField('Monthly Income', monthlyIncomeController, isRupiah: true),
-                    const SizedBox(height: 25),
-                    inputField('Personal Monthly Expenses', monthlyExpensesController, isRupiah: true),
-                    const SizedBox(height: 25),
-                    inputField('Dependents Cost', dependentsCostController, isRupiah: true),
-                    const SizedBox(height: 25),
-                    inputField('Monthly Emergency Fund Goal', emergencyFundController, isRupiah: true),
-                    const SizedBox(height: 25),
-                    inputField('Total Debt', totalDebtController, isRupiah: true),
-                    const SizedBox(height: 25),
-                    ElevatedButton(
-                      onPressed: saveTargetData,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFFFED66),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-                      ),
-                      child: Text(
-                        'Next',
-                        style: GoogleFonts.poppins(
+                    const SizedBox(width: 20),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            transitionDuration:
+                                const Duration(milliseconds: 100),
+                            pageBuilder: (_, __, ___) => const TargetScreen(),
+                            transitionsBuilder: (_, animation, __, child) {
+                              final tween = Tween(
+                                      begin: const Offset(-1, 0),
+                                      end: Offset.zero)
+                                  .chain(CurveTween(curve: Curves.easeInOut));
+                              return SlideTransition(
+                                  position: animation.drive(tween),
+                                  child: child);
+                            },
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 18, vertical: 6),
+                        decoration: BoxDecoration(
                           color: const Color(0xFF342E37),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x3F000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 4),
+                            )
+                          ],
+                        ),
+                        child: Text(
+                          'Back',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 72),
                   ],
                 ),
-              ),
-            ),
-
-            Positioned(
-              bottom: 10,
-              left: 20,
-              right: 20,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE13D56),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (_, __, ___) => const HomeScreen(),
-                            transitionDuration: Duration.zero,
-                            reverseTransitionDuration: Duration.zero,
+                const SizedBox(height: 20),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 40),
+                        inputField('Target Name (Car, House, Etc)',
+                            targetNameController),
+                        const SizedBox(height: 25),
+                        inputField('Target Amount (Rp)', targetAmountController,
+                            isRupiah: true),
+                        const SizedBox(height: 25),
+                        inputField('Target Deadline (dd/MM/yyyy)',
+                            targetDeadlineController,
+                            isDate: true),
+                        const SizedBox(height: 25),
+                        inputField('Monthly Income', monthlyIncomeController,
+                            isRupiah: true),
+                        const SizedBox(height: 25),
+                        inputField('Personal Monthly Expenses',
+                            monthlyExpensesController,
+                            isRupiah: true),
+                        const SizedBox(height: 25),
+                        inputField('Dependents Cost', dependentsCostController,
+                            isRupiah: true),
+                        const SizedBox(height: 25),
+                        inputField('Monthly Emergency Fund Goal',
+                            emergencyFundController,
+                            isRupiah: true),
+                        const SizedBox(height: 25),
+                        inputField('Total Debt', totalDebtController,
+                            isRupiah: true),
+                        const SizedBox(height: 25),
+                        ElevatedButton(
+                          onPressed: goToStep2,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFFED66),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 50, vertical: 10),
                           ),
-                        );
-                      },
-                      child: Image.asset('assets/icons/arrow.png', width: 33, height: 33),
-                    ),
-                    Image.asset(
-                      'assets/icons/wallet.png',
-                      width: 35,
-                      height: 35,
-                      color: const Color(0xFF342E37),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (_, __, ___) => const ProfileScreen(),
-                            transitionDuration: Duration.zero,
-                            reverseTransitionDuration: Duration.zero,
+                          child: Text(
+                            'Next',
+                            style: GoogleFonts.poppins(
+                              color: const Color(0xFF342E37),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        );
-                      },
-                      child: Image.asset('assets/icons/person.png', width: 35, height: 35),
+                        ),
+                        const SizedBox(height: 72),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ],
         ),

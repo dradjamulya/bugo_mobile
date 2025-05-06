@@ -1,3 +1,4 @@
+import 'package:bugo_mobile/screens/target-screen/target_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'input_savings.dart';
@@ -13,9 +14,7 @@ class InputScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          Container(
-            color: const Color(0xFFBCFDF7),
-          ),
+          Container(color: const Color(0xFFBCFDF7)),
 
           Positioned.fill(
             child: Column(
@@ -23,15 +22,11 @@ class InputScreen extends StatelessWidget {
                 ClipPath(
                   clipper: TopCurveClipper(),
                   child: Container(
-                    height: 300,
+                    height: 330,
                     color: const Color(0xFFE13D56),
                   ),
                 ),
-                Expanded(
-                  child: Container(
-                    color: const Color(0xFFBCFDF7),
-                  ),
-                ),
+                Expanded(child: Container(color: const Color(0xFFBCFDF7))),
               ],
             ),
           ),
@@ -40,8 +35,68 @@ class InputScreen extends StatelessWidget {
           Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const SizedBox(height: 90), 
-              Text (
+              const SizedBox(height: 60),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const SizedBox(width: 20),
+                  
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          transitionDuration: const Duration(milliseconds: 100),
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  const TargetScreen(),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            const begin = Offset(-1.0, 0.0);
+                            const end = Offset.zero;
+                            const curve = Curves.easeInOut;
+
+                            final tween = Tween(begin: begin, end: end)
+                                .chain(CurveTween(curve: curve));
+                            final offsetAnimation = animation.drive(tween);
+
+                            return SlideTransition(
+                              position: offsetAnimation,
+                              child: child,
+                            );
+                          },
+                        ),
+                      );
+                    },
+                    
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 18, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF342E37),
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x3F000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 4),
+                          )
+                        ],
+                      ),
+                      child: Text(
+                        'Back',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 25),
+              Text(
                 'Which one will you add?',
                 style: GoogleFonts.poppins(
                   color: Colors.white,
@@ -50,104 +105,24 @@ class InputScreen extends StatelessWidget {
                   height: 1.54,
                 ),
               ),
-              const SizedBox(height: 25), 
-
+              const SizedBox(height: 25),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
                       const SizedBox(height: 100),
-                      // Username Field
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 40),
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        decoration: ShapeDecoration(
-                          color: const Color(0xFFECFEFD),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          shadows: [
-                            BoxShadow(
-                              color: Color(0x3F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                              spreadRadius: 0,
-                            )
-                          ],
-                        ),
-                        child: TextField(
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF342E37),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'New Target',
-                            suffixIcon: IconButton(
-                              icon: const Icon(
-                                Icons.edit, 
-                                color: Colors.black, 
-                                size: 15
-                              ),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const InputTargetScreenStep1()),
-                                );
-                              },
-                            )
-                          ),
-                        ),
+                      inputTile(
+                        context,
+                        'New Target',
+                        const InputTargetScreenStep1(),
                       ),
                       const SizedBox(height: 28),
-
-                      // Name Field
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 40),
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        decoration: ShapeDecoration(
-                          color: const Color(0xFFECFEFD),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          shadows: [
-                            BoxShadow(
-                              color: Color(0x3F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                              spreadRadius: 0,
-                            )
-                          ],
-                        ),
-                        child: TextField(
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF342E37),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Add Savings',
-                            suffixIcon: IconButton(
-                              icon: const Icon(
-                                Icons.edit, 
-                                color: Colors.black, 
-                                size: 15
-                              ),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const InputSavingsScreen()),
-                                );
-                              },
-                            )
-                          ),
-                        ),
+                      inputTile(
+                        context,
+                        'Add Savings',
+                        const InputSavingsScreen(),
                       ),
                       const SizedBox(height: 224),
-
-                      // **Copyright**
                       Text(
                         'Copyright© BUGO2025',
                         textAlign: TextAlign.center,
@@ -155,9 +130,9 @@ class InputScreen extends StatelessWidget {
                           color: const Color(0xFF342E37),
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                        ),  
+                        ),
                       ),
-                      const SizedBox(height: 50), // Jarak agar tidak menempel ke navigasi
+                      const SizedBox(height: 50),
                     ],
                   ),
                 ),
@@ -167,7 +142,7 @@ class InputScreen extends StatelessWidget {
 
           // Navigasi Bawah
           Positioned(
-            bottom: 10, 
+            bottom: 10,
             left: 20,
             right: 20,
             child: Container(
@@ -195,7 +170,7 @@ class InputScreen extends StatelessWidget {
                       width: 33,
                       height: 33,
                     ),
-                  ),          
+                  ),
                   Image.asset(
                     'assets/icons/wallet.png',
                     width: 35,
@@ -205,7 +180,7 @@ class InputScreen extends StatelessWidget {
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
-                        context, 
+                        context,
                         PageRouteBuilder(
                           pageBuilder: (_, __, ___) => const ProfileScreen(),
                         ),
@@ -225,33 +200,57 @@ class InputScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-class EditableIcon extends StatefulWidget {
-  const EditableIcon({super.key});
-
-  @override
-  _EditableIconState createState() => _EditableIconState();
-}
-
-class _EditableIconState extends State<EditableIcon> {
-  bool isEditing = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          isEditing = !isEditing; // Toggle antara ikon edit dan centang
-        });
-      },
-      child: CircleAvatar(
-        radius: 5,
-        backgroundColor: isEditing ? Colors.black : Colors.transparent,
-        child: Icon(
-          isEditing ? Icons.check : Icons.edit,
-          color: isEditing ? Colors.white : Colors.black,
-          size: 15,
+  Widget inputTile(BuildContext context, String hint, Widget page) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 40),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: ShapeDecoration(
+        color: const Color(0xFFECFEFD),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+        shadows: const [
+          BoxShadow(
+            color: Color(0x3F000000),
+            blurRadius: 4,
+            offset: Offset(0, 4),
+          )
+        ],
+      ),
+      child: TextField(
+        readOnly: true,
+        style: GoogleFonts.poppins(
+          color: const Color(0xFF342E37),
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+        ),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          hintText: hint,
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.edit, color: Colors.black, size: 15),
+            onPressed: () {
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  transitionDuration: const Duration(milliseconds: 200),
+                  pageBuilder: (_, __, ___) => page,
+                  transitionsBuilder: (_, animation, __, child) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOut;
+                    var tween = Tween(begin: begin, end: end)
+                        .chain(CurveTween(curve: curve));
+                    return SlideTransition(
+                      position: animation.drive(tween),
+                      child: child,
+                    );
+                  },
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

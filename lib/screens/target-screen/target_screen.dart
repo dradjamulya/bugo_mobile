@@ -60,7 +60,6 @@ class _TargetScreenState extends State<TargetScreen> {
 
       totalTargetAmount += amount ?? 0;
 
-
       targets.add({
         'id': targetId,
         'target_name': data['target_name'],
@@ -193,15 +192,36 @@ class _TargetScreenState extends State<TargetScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (context) => const InputScreen()),
+                          PageRouteBuilder(
+                            transitionDuration:
+                                const Duration(milliseconds: 100),
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    const InputScreen(),
+                            transitionsBuilder: (context, animation,
+                                secondaryAnimation, child) {
+                              const begin =
+                                  Offset(1.0, 0.0);
+                              const end = Offset.zero;
+                              const curve = Curves.easeInOut;
+
+                              final tween = Tween(begin: begin, end: end)
+                                  .chain(CurveTween(curve: curve));
+                              final offsetAnimation = animation.drive(tween);
+
+                              return SlideTransition(
+                                position: offsetAnimation,
+                                child: child,
+                              );
+                            },
+                          ),
                         );
                       },
+                      
                       child: Container(
                         width: 72,
                         height: 38,
@@ -230,7 +250,6 @@ class _TargetScreenState extends State<TargetScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 25),
                     ...targets.map((target) {
                       final isFavorite = target['is_favorite'] ?? false;
@@ -309,15 +328,17 @@ class _TargetScreenState extends State<TargetScreen> {
                             ),
                             Positioned(
                               right: 20,
-                              top: 65,
+                              top: 31,
                               child: GestureDetector(
                                 onTap: () {
                                   toggleFavorite(target['id'], isFavorite);
                                 },
                                 child: Icon(
                                   isFavorite ? Icons.star : Icons.star_border,
-                                  size: 47,
-                                  color: isFavorite ? Color(0xFFFFED66) : Colors.grey,
+                                  size: 67,
+                                  color: isFavorite
+                                      ? Color(0xFFFFED66)
+                                      : Colors.grey,
                                 ),
                               ),
                             ),
@@ -330,56 +351,57 @@ class _TargetScreenState extends State<TargetScreen> {
               );
             },
           ),
-
           Positioned(
-              bottom: 10,
-              left: 20,
-              right: 20,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE13D56),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (_, __, ___) => const HomeScreen(),
-                            transitionDuration: Duration.zero,
-                            reverseTransitionDuration: Duration.zero,
-                          ),
-                        );
-                      },
-                      child: Image.asset('assets/icons/arrow.png', width: 33, height: 33),
-                    ),
-                    Image.asset(
-                      'assets/icons/wallet.png',
-                      width: 35,
-                      height: 35,
-                      color: const Color(0xFF342E37),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (_, __, ___) => const ProfileScreen(),
-                            transitionDuration: Duration.zero,
-                            reverseTransitionDuration: Duration.zero,
-                          ),
-                        );
-                      },
-                      child: Image.asset('assets/icons/person.png', width: 35, height: 35),
-                    ),
-                  ],
-                ),
+            bottom: 10,
+            left: 20,
+            right: 20,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE13D56),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) => const HomeScreen(),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
+                        ),
+                      );
+                    },
+                    child: Image.asset('assets/icons/arrow.png',
+                        width: 33, height: 33),
+                  ),
+                  Image.asset(
+                    'assets/icons/wallet.png',
+                    width: 35,
+                    height: 35,
+                    color: const Color(0xFF342E37),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) => const ProfileScreen(),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
+                        ),
+                      );
+                    },
+                    child: Image.asset('assets/icons/person.png',
+                        width: 35, height: 35),
+                  ),
+                ],
               ),
             ),
+          ),
         ],
       ),
     );

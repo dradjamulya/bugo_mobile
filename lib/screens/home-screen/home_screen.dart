@@ -125,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: ShapeDecoration(
                       color: const Color(0xFFECFEFD),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
+                        borderRadius: BorderRadius.circular(30),
                       ),
                       shadows: [
                         BoxShadow(
@@ -243,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: ShapeDecoration(
                   color: const Color(0xFFECFEFD),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25)),
+                      borderRadius: BorderRadius.circular(30)),
                   shadows: [
                     BoxShadow(
                       color: const Color(0x3F000000),
@@ -277,7 +277,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 5),
 
               // Icon Row
