@@ -18,23 +18,79 @@ class _TargetScreenState extends State<TargetScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  late Future<List<Map<String, dynamic>>> _targetData;
+  late Future<Map<String, dynamic>> _targetData;
 
-  Future<List<Map<String, dynamic>>> fetchTargets() async {
+  Future<Map<String, dynamic>> fetchData() async {
     final user = _auth.currentUser;
-    if (user == null) return [];
+    if (user == null) return {};
 
-    final snapshot = await _firestore
+    final targetsSnapshot = await _firestore
         .collection('targets')
         .where('user_id', isEqualTo: user.uid)
         .get();
-    return snapshot.docs.map((doc) => doc.data()).toList();
+
+    final savingsSnapshot = await _firestore
+        .collection('savings')
+        .where('user_id', isEqualTo: user.uid)
+        .get();
+
+    final validTargetIds = targetsSnapshot.docs.map((doc) => doc.id).toSet();
+
+    int totalSavings = 0;
+    int totalTargetAmount = 0;
+
+    Map<String, int> savingsPerTarget = {};
+    List<Map<String, dynamic>> targets = [];
+
+    for (var doc in savingsSnapshot.docs) {
+      String targetId = doc['target_id'];
+      if (!validTargetIds.contains(targetId)) continue;
+
+      int amount = doc['amount'] ?? 0;
+      totalSavings += amount;
+      savingsPerTarget[targetId] = (savingsPerTarget[targetId] ?? 0) + amount;
+    }
+
+    for (var doc in targetsSnapshot.docs) {
+      final data = doc.data();
+      final targetId = doc.id;
+      final int amount = (data['target_amount'] is int)
+          ? data['target_amount']
+          : int.tryParse(data['target_amount'].toString()) ?? 0;
+
+      totalTargetAmount += amount ?? 0;
+
+
+      targets.add({
+        'id': targetId,
+        'target_name': data['target_name'],
+        'target_amount': amount,
+        'target_deadline': data['target_deadline'],
+        'saved_amount': savingsPerTarget[targetId] ?? 0,
+        'is_favorite': data['is_favorite'] ?? false,
+      });
+    }
+
+    return {
+      'total_savings': totalSavings,
+      'total_target': totalTargetAmount,
+      'targets': targets,
+    };
   }
 
   @override
   void initState() {
     super.initState();
-    _targetData = fetchTargets();
+    _targetData = fetchData();
+  }
+
+  Future<void> toggleFavorite(String targetId, bool isFav) async {
+    await _firestore.collection('targets').doc(targetId).update({
+      'is_favorite': !isFav,
+    });
+    setState(() {
+      _targetData = fetchData();
+    });
   }
 
   @override
@@ -47,197 +103,190 @@ class _TargetScreenState extends State<TargetScreen> {
             clipper: BottomCurveClipper(),
             child: Container(height: 400, color: const Color(0xFFE13D56)),
           ),
-          SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 120),
-            child: Column(
-              children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 35),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
+          FutureBuilder<Map<String, dynamic>>(
+            future: _targetData,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text("No data found"));
+              }
+
+              final currency = NumberFormat.currency(
+                  locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
+              final totalSavings = snapshot.data!['total_savings'] as int;
+              final totalTarget = snapshot.data!['total_target'] as int;
+              final targets = snapshot.data!['targets'] as List;
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 120),
+                child: Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 40),
+                      child: Column(
                         children: [
-                          Container(
-                            width: 63,
-                            height: 33,
-                            decoration: ShapeDecoration(
-                              color: const Color(0xFF342E37),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              shadows: [
-                                BoxShadow(
-                                  color: Color(0x3F000000),
-                                  blurRadius: 4,
-                                  offset: Offset(0, 4),
-                                )
-                              ],
-                            ),
-                            child: Center(
-                              child: Text(
-                                'Flip',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
+                          const SizedBox(height: 35),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 63,
+                                height: 33,
+                                decoration: ShapeDecoration(
+                                  color: const Color(0xFF342E37),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  shadows: const [
+                                    BoxShadow(
+                                      color: Color(0x3F000000),
+                                      blurRadius: 4,
+                                      offset: Offset(0, 4),
+                                    )
+                                  ],
                                 ),
-                              ),
+                                child: Center(
+                                  child: Text(
+                                    'Flip',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Current Target :',
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
                             ),
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Current Target :',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      FutureBuilder<List<Map<String, dynamic>>>(
-                        future: _targetData,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return CircularProgressIndicator();
-                          }
-                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return Text(
-                              'No Target Available',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 34,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            );
-                          }
-                          final totalAmount = snapshot.data!.fold<int>(
-                            0,
-                            (sum, target) => sum + target['target_amount'] as int,
-                          );
-                          return Text(
-                            'Rp${NumberFormat('#,###').format(totalAmount)}',
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            currency.format(totalSavings),
                             style: GoogleFonts.poppins(
                               color: Colors.white,
                               fontSize: 34,
                               fontWeight: FontWeight.w700,
                             ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => InputScreen()),
-                    );
-                  },
-                  child: Container(
-                    width: 72,
-                    height: 38,
-                    decoration: ShapeDecoration(
-                      color: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(width: 5, color: const Color(0xFFE13D56)),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      shadows: [
-                        BoxShadow(
-                          color: Color(0x3F000000),
-                          blurRadius: 4,
-                          offset: Offset(0, 4),
-                        )
-                      ],
-                    ),
-                    child: Center(
-                      child: Image.asset(
-                        'assets/icons/plus.png',
-                        width: 26,
-                        height: 26,
-                        color: Colors.black,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            currency.format(totalTarget),
+                            style: GoogleFonts.poppins(
+                              color: const Color(0xFFFFED66),
+                              fontSize: 22,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ),
-                
-                FutureBuilder<List<Map<String, dynamic>>>(
-                  future: _targetData,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator();
-                    }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'No Targets',
-                          style: GoogleFonts.poppins(
+                    const SizedBox(height: 10),
+
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const InputScreen()),
+                        );
+                      },
+                      child: Container(
+                        width: 72,
+                        height: 38,
+                        decoration: ShapeDecoration(
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            side: const BorderSide(
+                                width: 5, color: Color(0xFFE13D56)),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          shadows: const [
+                            BoxShadow(
+                              color: Color(0x3F000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 4),
+                            )
+                          ],
+                        ),
+                        child: Center(
+                          child: Image.asset(
+                            'assets/icons/plus.png',
+                            width: 26,
+                            height: 26,
                             color: Colors.black,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                      );
-                    }
-                    return ListView.builder(
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        final target = snapshot.data![index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                          child: Container(
-                            width: 401,
-                            height: 133,
-                            decoration: ShapeDecoration(
-                              color: const Color(0xFFECFEFD),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              shadows: [
-                                BoxShadow(
-                                  color: Color(0x3F000000),
-                                  blurRadius: 4,
-                                  offset: Offset(0, 4),
-                                )
-                              ],
-                            ),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
-                              title: Text(
-                                target['target_name'],
-                                style: GoogleFonts.poppins(
-                                  color: const Color(0xFF342E37),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400,
+                      ),
+                    ),
+
+                    const SizedBox(height: 25),
+                    ...targets.map((target) {
+                      final isFavorite = target['is_favorite'] ?? false;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: 401,
+                              height: 133,
+                              decoration: ShapeDecoration(
+                                color: const Color(0xFFECFEFD),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
                                 ),
+                                shadows: const [
+                                  BoxShadow(
+                                    color: Color(0x3F000000),
+                                    blurRadius: 4,
+                                    offset: Offset(0, 4),
+                                  )
+                                ],
                               ),
-                              subtitle: Column(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 18, vertical: 20),
+                              child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const SizedBox(height: 2),
+                                  Text(
+                                    target['target_name'],
+                                    style: GoogleFonts.poppins(
+                                      color: const Color(0xFF342E37),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
                                   RichText(
                                     text: TextSpan(
                                       children: [
                                         TextSpan(
-                                          text: 'Rp${NumberFormat('#,###').format(target['target_amount'])}\n',
-                                          style: TextStyle(
-                                            color: const Color(0xFF342E37),
+                                          text:
+                                              '${currency.format(target['saved_amount'])}\n',
+                                          style: const TextStyle(
+                                            color: Color(0xFF342E37),
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                         TextSpan(
-                                          text: '/ Rp${NumberFormat('#,###').format(target['target_amount'])}',
-                                          style: TextStyle(
-                                            color: const Color(0xFF9D8DF1),
+                                          text:
+                                              '/ ${currency.format(target['target_amount'])}',
+                                          style: const TextStyle(
+                                            color: Color(0xFF9D8DF1),
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -258,72 +307,79 @@ class _TargetScreenState extends State<TargetScreen> {
                                 ],
                               ),
                             ),
+                            Positioned(
+                              right: 20,
+                              top: 65,
+                              child: GestureDetector(
+                                onTap: () {
+                                  toggleFavorite(target['id'], isFavorite);
+                                },
+                                child: Icon(
+                                  isFavorite ? Icons.star : Icons.star_border,
+                                  size: 47,
+                                  color: isFavorite ? Color(0xFFFFED66) : Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ),
+              );
+            },
+          ),
+
+          Positioned(
+              bottom: 10,
+              left: 20,
+              right: 20,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE13D56),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (_, __, ___) => const HomeScreen(),
+                            transitionDuration: Duration.zero,
+                            reverseTransitionDuration: Duration.zero,
                           ),
                         );
                       },
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            bottom: 10,
-            left: 20,
-            right: 20,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE13D56),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder: (_, __, ___) => const HomeScreen(),
-                          transitionDuration: Duration.zero,
-                          reverseTransitionDuration: Duration.zero,
-                        ),
-                      );
-                    },
-                    child: Image.asset(
-                      'assets/icons/arrow.png',
-                      width: 33,
-                      height: 33,
+                      child: Image.asset('assets/icons/arrow.png', width: 33, height: 33),
                     ),
-                  ),
-                  Image.asset(
-                    'assets/icons/wallet.png',
-                    width: 35,
-                    height: 35,
-                    color: const Color(0xFF342E37),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder: (_, __, ___) => const ProfileScreen(),
-                          transitionDuration: Duration.zero,
-                          reverseTransitionDuration: Duration.zero,
-                        ),
-                      );
-                    },
-                    child: Image.asset(
-                      'assets/icons/person.png',
+                    Image.asset(
+                      'assets/icons/wallet.png',
                       width: 35,
                       height: 35,
+                      color: const Color(0xFF342E37),
                     ),
-                  ),
-                ],
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (_, __, ___) => const ProfileScreen(),
+                            transitionDuration: Duration.zero,
+                            reverseTransitionDuration: Duration.zero,
+                          ),
+                        );
+                      },
+                      child: Image.asset('assets/icons/person.png', width: 35, height: 35),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

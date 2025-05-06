@@ -53,17 +53,29 @@ class _InputTargetScreenStep1State extends State<InputTargetScreenStep1> {
     final user = _auth.currentUser;
     if (user == null) return;
 
+    final targetName = targetNameController.text.trim();
+    final targetAmount = parseRupiah(targetAmountController.text);
+    final targetDeadline = targetDeadlineController.text.trim();
+
+    if (targetName.isEmpty || targetAmount == 0 || targetDeadline.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please complete all required fields")),
+      );
+      return;
+    }
+
     await _firestore.collection('targets').add({
       'user_id': user.uid,
-      'target_name': targetNameController.text,
-      'target_amount': parseRupiah(targetAmountController.text),
-      'target_deadline': targetDeadlineController.text,
+      'target_name': targetName,
+      'target_amount': targetAmount,
+      'target_deadline': targetDeadline,
       'monthly_income': parseRupiah(monthlyIncomeController.text),
       'monthly_expenses': parseRupiah(monthlyExpensesController.text),
       'dependents_cost': parseRupiah(dependentsCostController.text),
       'emergency_fund': parseRupiah(emergencyFundController.text),
       'total_debt': parseRupiah(totalDebtController.text),
       'created_at': FieldValue.serverTimestamp(),
+      'is_favorite': false,
     });
 
     Navigator.pushReplacement(
@@ -143,7 +155,7 @@ class _InputTargetScreenStep1State extends State<InputTargetScreenStep1> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    const SizedBox(height: 170),
+                    const SizedBox(height: 140),
                     inputField('Target Name (Car, House, Etc)', targetNameController),
                     const SizedBox(height: 25),
                     inputField('Target Amount (Rp)', targetAmountController, isRupiah: true),
@@ -163,7 +175,7 @@ class _InputTargetScreenStep1State extends State<InputTargetScreenStep1> {
                     ElevatedButton(
                       onPressed: saveTargetData,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.yellow,
+                        backgroundColor: Color(0xFFFFED66),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                         padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
                       ),
@@ -181,6 +193,7 @@ class _InputTargetScreenStep1State extends State<InputTargetScreenStep1> {
                 ),
               ),
             ),
+
             Positioned(
               bottom: 10,
               left: 20,

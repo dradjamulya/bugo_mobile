@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
     Widget build(BuildContext context) {
       return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'BUGO App',
+      title: 'BUGO: Buddy to Your Goals!',
       theme: ThemeData(
         primaryColor: Color(0xFFE13D56),
       ),

@@ -85,20 +85,18 @@ class InputTargetScreenStep2 extends StatelessWidget {
                                 children: [
                                   TextSpan(
                                     text: 'Conservative (Low Risk)\n',
-                                    style: TextStyle(
+                                    style: GoogleFonts.poppins(
                                       color: Color(0xFF342E37),
                                       fontSize: 12,
-                                      fontFamily: 'Poppins',
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                   TextSpan(
                                     text:
                                         'Safe & stable savings, minimal risk.',
-                                    style: TextStyle(
+                                    style: GoogleFonts.poppins(
                                       color: Color(0xFF342E37),
                                       fontSize: 12,
-                                      fontFamily: 'Poppins',
                                       fontWeight: FontWeight.w400,
                                     ),
                                   ),
@@ -139,20 +137,18 @@ class InputTargetScreenStep2 extends StatelessWidget {
                                 children: [
                                   TextSpan(
                                     text: 'Moderate (Medium Risk)\n',
-                                    style: TextStyle(
+                                    style: GoogleFonts.poppins(
                                       color: Color(0xFF342E37),
                                       fontSize: 12,
-                                      fontFamily: 'Poppins',
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                   TextSpan(
                                     text:
                                         'Balanced approach, mix of savings & investments.',
-                                    style: TextStyle(
+                                    style: GoogleFonts.poppins(
                                       color: Color(0xFF342E37),
                                       fontSize: 12,
-                                      fontFamily: 'Poppins',
                                       fontWeight: FontWeight.w400,
                                     ),
                                   ),
@@ -193,20 +189,18 @@ class InputTargetScreenStep2 extends StatelessWidget {
                                 children: [
                                   TextSpan(
                                     text: 'Aggressive (High Risk)\n',
-                                    style: TextStyle(
+                                    style: GoogleFonts.poppins(
                                       color: Color(0xFF342E37),
                                       fontSize: 12,
-                                      fontFamily: 'Poppins',
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                   TextSpan(
                                     text:
                                         'High-growth potential, higher risk involved.',
-                                    style: TextStyle(
+                                    style: GoogleFonts.poppins(
                                       color: Color(0xFF342E37),
                                       fontSize: 12,
-                                      fontFamily: 'Poppins',
                                       fontWeight: FontWeight.w400,
                                     ),
                                   ),

@@ -1,7 +1,9 @@
+import 'package:bugo_mobile/screens/target-screen/input_savings.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'saving_screen.dart';
 import '../target-screen/target_screen.dart';
 import '../auth-screen/profile_screen.dart';
@@ -15,19 +17,59 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String username = '';
+  Map<String, dynamic>? favoriteTarget;
 
   @override
   void initState() {
     super.initState();
     fetchUsername();
+    fetchFavoriteTarget();
   }
 
   Future<void> fetchUsername() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final doc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
       setState(() {
         username = doc['username'];
+      });
+    }
+  }
+
+  Future<void> fetchFavoriteTarget() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final targetQuery = await FirebaseFirestore.instance
+        .collection('targets')
+        .where('user_id', isEqualTo: uid)
+        .where('is_favorite', isEqualTo: true)
+        .limit(1)
+        .get();
+
+    if (targetQuery.docs.isNotEmpty) {
+      final targetDoc = targetQuery.docs.first;
+      final targetId = targetDoc.id;
+      final data = targetDoc.data();
+
+      final savingsQuery = await FirebaseFirestore.instance
+          .collection('savings')
+          .where('user_id', isEqualTo: uid)
+          .where('target_id', isEqualTo: targetId)
+          .get();
+
+      int totalSaved = 0;
+      for (var doc in savingsQuery.docs) {
+        totalSaved += (doc['amount'] as int?) ?? 0;
+      }
+
+      setState(() {
+        favoriteTarget = {
+          'name': data['target_name'],
+          'saved': totalSaved,
+          'total': data['target_amount'],
+        };
       });
     }
   }
@@ -37,70 +79,49 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          Container(
-            color: const Color(0xFFBCFDF7),
-          ),
-
+          Container(color: const Color(0xFFBCFDF7)),
           Positioned.fill(
             child: Column(
               children: [
                 ClipPath(
                   clipper: TopCurveClipper(),
-                  child: Container(
-                    height: 300,
-                    color: const Color(0xFFE13D56),
-                  ),
+                  child: Container(height: 300, color: const Color(0xFFE13D56)),
                 ),
-                Expanded(
-                  child: Container(
-                    color: const Color(0xFFBCFDF7),
-                  ),
-                ),
+                Expanded(child: Container(color: const Color(0xFFBCFDF7))),
               ],
             ),
           ),
-
-          // Konten utama
           Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SizedBox(height: 55),
+              const SizedBox(height: 55),
               Text(
                 'Hey, $username!',
                 style: GoogleFonts.poppins(
                   fontSize: 32,
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
-                  height: 1.25
+                  height: 1.25,
                 ),
               ),
               const SizedBox(height: 25),
 
               GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SavingScreen(),
-                    ),
-                  );
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => SavingScreen()));
                 },
-                child: Image.asset(
-                  'assets/icons/wallet-pinned.png',
-                  width: 51,
-                  height: 51,
-                ),
+                child: Image.asset('assets/icons/wallet-pinned.png',
+                    width: 51, height: 51),
               ),
 
-              // Box Current Saving
               Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: [
-                  // Box Current Saving
                   Container(
-                    width: 374,
-                    height: 220,
+                    width: 345,
+                    height: 195,
                     decoration: ShapeDecoration(
                       color: const Color(0xFFECFEFD),
                       shape: RoundedRectangleBorder(
@@ -108,63 +129,68 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       shadows: [
                         BoxShadow(
-                          color: Color(0x3F000000),
+                          color: const Color(0x3F000000),
                           blurRadius: 4,
-                          offset: Offset(0, 4),
-                          spreadRadius: 0,
-                        )
+                          offset: const Offset(0, 4),
+                        ),
                       ],
                     ),
                     child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Current Saving for',
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xFF342E37),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                              height: 1.86,
+                      child: favoriteTarget == null
+                          ? Text(
+                              'No Favorite Target',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                                color: const Color(0xFF342E37),
+                              ),
+                            )
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Current Saving for',
+                                  style: GoogleFonts.poppins(
+                                    color: const Color(0xFF342E37),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                Text(
+                                  '${favoriteTarget!['name']} :',
+                                  style: GoogleFonts.poppins(
+                                    color: const Color(0xFF342E37),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Rp${NumberFormat("#,###", "id_ID").format(favoriteTarget!['saved'])}',
+                                  style: GoogleFonts.poppins(
+                                    color: const Color(0xFF342E37),
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Rp${NumberFormat("#,###", "id_ID").format(favoriteTarget!['total'])}',
+                                  style: GoogleFonts.poppins(
+                                    color: const Color(0xFF9D8DF1),
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                          Text(
-                            '(Target Name) :',
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xFF342E37),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              height: 1.86,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Rp999.000.000.000',
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xFF342E37),
-                              fontSize: 30,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Rp999.000.000.000',
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xFF9D8DF1),
-                              fontSize: 20,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
                     ),
                   ),
-
-                  // Lingkaran di bawah
+                  
                   Positioned(
                     bottom: -35,
                     child: GestureDetector(
@@ -172,9 +198,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => TargetScreen(),
-                          ),
-                        );
+                              builder: (context) => const InputSavingsScreen()),
+                        ).then((_) {
+                          fetchFavoriteTarget();
+                        });
                       },
                       child: Container(
                         width: 70,
@@ -183,25 +210,22 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: const Color(0xFFE13D56),
                           shape: OvalBorder(
                             side: BorderSide(
-                              width: 7,
-                              color: const Color(0xFFECFEFD),
-                            ),
+                                width: 7, color: const Color(0xFFECFEFD)),
                           ),
                           shadows: [
                             BoxShadow(
-                              color: Color(0x3F000000),
+                              color: const Color(0x3F000000),
                               blurRadius: 4,
-                              offset: Offset(0, 4),
-                              spreadRadius: 0,
-                            )
+                              offset: const Offset(0, 4),
+                            ),
                           ],
                         ),
                         child: Center(
                           child: Image.asset(
-                            'assets/icons/plus.png', // path icon plus kamu
+                            'assets/icons/plus.png',
                             width: 30,
                             height: 30,
-                            color: Colors.white, // Optional: kasih warna putih supaya kelihatan
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -209,43 +233,40 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
+
               const SizedBox(height: 20),
 
               // Emergency Fund Box
               Container(
-                width: 374,
+                width: 345,
                 height: 133,
                 decoration: ShapeDecoration(
-                    color: const Color(0xFFECFEFD),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+                  color: const Color(0xFFECFEFD),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25)),
+                  shadows: [
+                    BoxShadow(
+                      color: const Color(0x3F000000),
+                      blurRadius: 4,
+                      offset: const Offset(0, 4),
                     ),
-                    shadows: [
-                      BoxShadow(
-                        color: Color(0x3F000000),
-                        blurRadius: 4,
-                        offset: Offset(0, 4),
-                        spreadRadius: 0,
-                      )
-                    ]),
+                  ],
+                ),
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         'Emergency Fund:',
-                        textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           color: const Color(0xFF342E37),
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         'Rp999.000.000.000',
-                        textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           color: const Color(0xFF342E37),
                           fontSize: 28,
@@ -256,88 +277,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 5),
 
-              // Row ikon bawah
+              // Icon Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Container(
-                    width: 100,
-                    height: 96,
-                    decoration: ShapeDecoration(
-                        color: const Color(0xFFECFEFD),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        shadows: [
-                          BoxShadow(
-                            color: Color(0x3F000000),
-                            blurRadius: 4,
-                            offset: Offset(0, 4),
-                            spreadRadius: 0,
-                          )
-                        ]),
-                    child: Center(
-                      child: Image.asset(
-                        'assets/icons/notification.png',
-                        width: 46,
-                        height: 46,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width: 100,
-                    height: 96,
-                    decoration: ShapeDecoration(
-                        color: const Color(0xFFECFEFD),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        shadows: [
-                          BoxShadow(
-                            color: Color(0x3F000000),
-                            blurRadius: 4,
-                            offset: Offset(0, 4),
-                            spreadRadius: 0,
-                          )
-                        ]),
-                    child: Center(
-                      child: Image.asset(
-                        'assets/icons/eye.png',
-                        width: 54,
-                        height: 54,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width: 100,
-                    height: 96,
-                    decoration: ShapeDecoration(
-                        color: const Color(0xFFECFEFD),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        shadows: [
-                          BoxShadow(
-                            color: Color(0x3F000000),
-                            blurRadius: 4,
-                            offset: Offset(0, 4),
-                            spreadRadius: 0,
-                          )
-                        ]),
-                    child: Center(
-                      child: Image.asset(
-                        'assets/icons/link.png',
-                        width: 63,
-                        height: 63,
-                      ),
-                    ),
-                  ),
+                  iconButtonBox('assets/icons/notification.png', 46),
+                  iconButtonBox('assets/icons/eye.png', 54),
+                  iconButtonBox('assets/icons/link.png', 63),
                 ],
               ),
 
-              // Navigasi bawah
               Container(
                 margin: const EdgeInsets.only(
                     bottom: 10, left: 20, right: 20, top: 10),
@@ -350,28 +302,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Image.asset(
-                      'assets/icons/arrow.png',
-                      width: 33,
-                      height: 33,
-                      color: const Color(0xFF342E37),
-                    ),
+                    Image.asset('assets/icons/arrow.png',
+                        width: 33, height: 33, color: const Color(0xFF342E37)),
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
                           context,
                           PageRouteBuilder(
-                            pageBuilder: (_, __, ___) => TargetScreen(),
+                            pageBuilder: (_, __, ___) => const TargetScreen(),
                             transitionDuration: Duration.zero,
                             reverseTransitionDuration: Duration.zero,
                           ),
                         );
                       },
-                      child: Image.asset(
-                        'assets/icons/wallet.png',
-                        width: 35,
-                        height: 35,
-                      ),
+                      child: Image.asset('assets/icons/wallet.png',
+                          width: 35, height: 35),
                     ),
                     GestureDetector(
                       onTap: () {
@@ -384,11 +329,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         );
                       },
-                      child: Image.asset(
-                        'assets/icons/person.png',
-                        width: 35,
-                        height: 35,
-                      ),
+                      child: Image.asset('assets/icons/person.png',
+                          width: 35, height: 35),
                     ),
                   ],
                 ),
@@ -396,6 +338,27 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget iconButtonBox(String path, double size) {
+    return Container(
+      width: 100,
+      height: 96,
+      decoration: ShapeDecoration(
+        color: const Color(0xFFECFEFD),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        shadows: [
+          BoxShadow(
+            color: const Color(0x3F000000),
+            blurRadius: 4,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Image.asset(path, width: size, height: size),
       ),
     );
   }

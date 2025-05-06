@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../home-screen/home_screen.dart';
 import '../auth-screen/profile_screen.dart';
 
@@ -16,6 +18,9 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
   final _amountController = TextEditingController();
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
+
+  final _currencyFormatter =
+      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
 
   String? _selectedTargetId;
   Map<String, String> _targets = {};
@@ -52,7 +57,8 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
     final user = _auth.currentUser;
     if (user == null || _selectedTargetId == null) return;
 
-    final amount = int.tryParse(_amountController.text.trim());
+    final rawAmount = _amountController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final amount = int.tryParse(rawAmount);
     if (amount == null) return;
 
     await _firestore.collection('savings').add({
@@ -66,7 +72,7 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
       const SnackBar(content: Text("Savings saved successfully")),
     );
 
-    Navigator.pop(context); // Atau ganti ke halaman lain jika perlu
+    Navigator.pop(context);
   }
 
   @override
@@ -95,7 +101,6 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    const SizedBox(height: 170),
 
                     // Input Amount
                     Container(
@@ -117,6 +122,10 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
                       child: TextField(
                         controller: _amountController,
                         keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          CurrencyInputFormatter(_currencyFormatter),
+                        ],
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(fontSize: 12),
                         decoration: const InputDecoration(
@@ -178,7 +187,7 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
                     // Save Button
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.yellow,
+                        backgroundColor: Color(0xFFFFED66),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
@@ -274,4 +283,23 @@ class TopCurveClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+class CurrencyInputFormatter extends TextInputFormatter {
+  final NumberFormat formatter;
+
+  CurrencyInputFormatter(this.formatter);
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.isEmpty) return newValue;
+
+    int value = int.tryParse(newValue.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+    String newText = formatter.format(value);
+
+    return TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
+    );
+  }
 }
