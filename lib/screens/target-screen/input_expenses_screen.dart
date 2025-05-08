@@ -1,0 +1,307 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../home-screen/home_screen.dart';
+import '../auth-screen/profile_screen.dart';
+
+class InputExpenseScreen extends StatefulWidget {
+  const InputExpenseScreen({super.key});
+
+  @override
+  State<InputExpenseScreen> createState() => _InputExpenseScreenState();
+}
+
+class _InputExpenseScreenState extends State<InputExpenseScreen> {
+  final _amountController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _firestore = FirebaseFirestore.instance;
+  final _auth = FirebaseAuth.instance;
+
+  String? _selectedTargetId;
+  Map<String, String> _targets = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTargets();
+  }
+
+  Future<void> _fetchTargets() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final query = await _firestore
+        .collection('targets')
+        .where('user_id', isEqualTo: user.uid)
+        .get();
+
+    Map<String, String> fetchedTargets = {};
+    for (var doc in query.docs) {
+      fetchedTargets[doc.id] = doc['target_name'];
+    }
+
+    setState(() {
+      _targets = fetchedTargets;
+      if (_targets.isNotEmpty) {
+        _selectedTargetId = _targets.keys.first;
+      }
+    });
+  }
+
+  int parseRupiah(String value) {
+    return int.tryParse(value.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+  }
+
+  Future<void> _saveExpense() async {
+    final user = _auth.currentUser;
+    if (user == null || _selectedTargetId == null) return;
+
+    final amount = parseRupiah(_amountController.text.trim());
+    final description = _descriptionController.text.trim();
+
+    if (amount == 0 || description.isEmpty) return;
+
+    await _firestore.collection('expenses').add({
+      'user_id': user.uid,
+      'target_id': _selectedTargetId,
+      'amount': amount,
+      'description': description,
+      'timestamp': Timestamp.now(),
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Expense saved successfully")),
+    );
+
+    _amountController.clear();
+    _descriptionController.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          Container(color: const Color(0xFFBCFDF7)),
+          Positioned.fill(
+            child: Column(
+              children: [
+                ClipPath(
+                  clipper: TopCurveClipper(),
+                  child: Container(height: 250, color: const Color(0xFFE13D56)),
+                ),
+                Expanded(child: Container(color: const Color(0xFFBCFDF7))),
+              ],
+            ),
+          ),
+          Center(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 170),
+
+                  // Add Amount
+                  inputBox(
+                    controller: _amountController,
+                    hint: 'Add Amount',
+                    isRupiah: true,
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Description Field
+                  inputBox(
+                    controller: _descriptionController,
+                    hint: "What's it for?",
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Target Dropdown
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 40),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: ShapeDecoration(
+                      color: const Color(0xFFECFEFD),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      shadows: const [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 4),
+                        )
+                      ],
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: _selectedTargetId,
+                        items: _targets.entries
+                            .map((entry) => DropdownMenuItem<String>(
+                                  value: entry.key,
+                                  child: Center(
+                                    child: Text(
+                                      entry.value,
+                                      style: GoogleFonts.poppins(fontSize: 12),
+                                    ),
+                                  ),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedTargetId = value;
+                          });
+                        },
+                        hint: Center(
+                          child: Text(
+                            'Choose Target to Reduce Savings Amount',
+                            style: GoogleFonts.poppins(fontSize: 12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 50),
+
+                  // Save Button
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.yellow,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                    ),
+                    onPressed: _saveExpense,
+                    child: Text(
+                      'Save',
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF342E37),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Bottom Navigation
+          Positioned(
+            bottom: 10,
+            left: 20,
+            right: 20,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE13D56),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) => const HomeScreen(),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
+                        ),
+                      );
+                    },
+                    child: Image.asset('assets/icons/arrow.png', width: 33, height: 33),
+                  ),
+                  Image.asset(
+                    'assets/icons/wallet.png',
+                    width: 35,
+                    height: 35,
+                    color: const Color(0xFF342E37),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) => const ProfileScreen(),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
+                        ),
+                      );
+                    },
+                    child: Image.asset('assets/icons/person.png', width: 35, height: 35),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget inputBox({
+    required TextEditingController controller,
+    required String hint,
+    bool isRupiah = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 40),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: ShapeDecoration(
+        color: const Color(0xFFECFEFD),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        shadows: const [
+          BoxShadow(
+            color: Color(0x3F000000),
+            blurRadius: 4,
+            offset: Offset(0, 4),
+          )
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: TextInputType.number,
+        inputFormatters: isRupiah
+            ? [
+                CurrencyInputFormatter(
+                  leadingSymbol: 'Rp',
+                  thousandSeparator: ThousandSeparator.Period,
+                  mantissaLength: 0,
+                )
+              ]
+            : [],
+        textAlign: TextAlign.center,
+        style: GoogleFonts.poppins(fontSize: 12),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          hintText: hint,
+        ),
+      ),
+    );
+  }
+}
+
+class TopCurveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    path.lineTo(0, size.height - 100);
+    path.quadraticBezierTo(
+      size.width / 2,
+      size.height - 185,
+      size.width,
+      size.height - 100,
+    );
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'balance_screen.dart';
 import 'input_screen.dart';
 import '../home-screen/home_screen.dart';
 import '../auth-screen/profile_screen.dart';
@@ -132,33 +133,59 @@ class _TargetScreenState extends State<TargetScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              Container(
-                                width: 63,
-                                height: 33,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFF342E37),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    PageRouteBuilder(
+                                      transitionDuration:
+                                          const Duration(milliseconds: 100),
+                                      pageBuilder: (_, __, ___) =>
+                                          const BalanceScreen(),
+                                      transitionsBuilder: (context, animation,
+                                          secondaryAnimation, child) {
+                                        const begin = Offset(1.0, 0.0);
+                                        const end = Offset.zero;
+                                        final tween =
+                                            Tween(begin: begin, end: end).chain(
+                                                CurveTween(
+                                                    curve: Curves.easeInOut));
+                                        return SlideTransition(
+                                          position: animation.drive(tween),
+                                          child: child,
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  width: 63,
+                                  height: 33,
+                                  decoration: ShapeDecoration(
+                                    color: const Color(0xFF342E37),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    shadows: const [
+                                      BoxShadow(
+                                        color: Color(0x3F000000),
+                                        blurRadius: 4,
+                                        offset: Offset(0, 4),
+                                      )
+                                    ],
                                   ),
-                                  shadows: const [
-                                    BoxShadow(
-                                      color: Color(0x3F000000),
-                                      blurRadius: 4,
-                                      offset: Offset(0, 4),
-                                    )
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    'Flip',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
+                                  child: Center(
+                                    child: Text(
+                                      'Flip',
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              )
+                              ),
                             ],
                           ),
                           const SizedBox(height: 10),
@@ -204,8 +231,7 @@ class _TargetScreenState extends State<TargetScreen> {
                                     const InputScreen(),
                             transitionsBuilder: (context, animation,
                                 secondaryAnimation, child) {
-                              const begin =
-                                  Offset(1.0, 0.0);
+                              const begin = Offset(1.0, 0.0);
                               const end = Offset.zero;
                               const curve = Curves.easeInOut;
 
@@ -221,7 +247,6 @@ class _TargetScreenState extends State<TargetScreen> {
                           ),
                         );
                       },
-                      
                       child: Container(
                         width: 72,
                         height: 38,

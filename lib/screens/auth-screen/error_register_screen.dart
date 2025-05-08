@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'login_screen.dart';
 import '/services/auth_service.dart';
 
-
 class ErrorRegisterScreen extends StatefulWidget {
   const ErrorRegisterScreen({Key? key}) : super(key: key);
 
@@ -64,9 +63,12 @@ class _ErrorRegisterScreenState extends State<ErrorRegisterScreen> {
                     const SizedBox(height: 24),
                     buildInputField("USERNAME", usernameController),
                     const SizedBox(height: 24),
-                    buildInputField("PASSWORD", passwordController, isPassword: true),
+                    buildInputField("PASSWORD", passwordController,
+                        isPassword: true),
                     const SizedBox(height: 24),
-                    buildInputField("CONFIRM PASSWORD", confirmPasswordController, isPassword: true),
+                    buildInputField(
+                        "CONFIRM PASSWORD", confirmPasswordController,
+                        isPassword: true),
                     const SizedBox(height: 24),
                     GestureDetector(
                       onTap: () {
@@ -107,21 +109,21 @@ class _ErrorRegisterScreenState extends State<ErrorRegisterScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 50, vertical: 10),
                       ),
                       onPressed: () async {
                         final name = nameController.text.trim();
                         final email = emailController.text.trim();
                         final username = usernameController.text.trim();
                         final password = passwordController.text.trim();
-                        final confirmPassword = confirmPasswordController.text.trim();
+                        final confirmPassword =
+                            confirmPasswordController.text.trim();
 
                         if (password != confirmPassword) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ErrorRegisterScreen(),
-                            ),
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("Passwords do not match")),
                           );
                           return;
                         }
@@ -135,7 +137,8 @@ class _ErrorRegisterScreenState extends State<ErrorRegisterScreen> {
 
                         if (msg == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Registration Succeed')),
+                            const SnackBar(
+                                content: Text('Registration Succeed')),
                           );
                           Navigator.pushReplacement(
                             context,
@@ -169,7 +172,8 @@ class _ErrorRegisterScreenState extends State<ErrorRegisterScreen> {
     );
   }
 
-  Widget buildInputField(String hint, TextEditingController controller, {bool isPassword = false}) {
+  Widget buildInputField(String hint, TextEditingController controller,
+      {bool isPassword = false}) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 40),
       padding: const EdgeInsets.symmetric(horizontal: 20),

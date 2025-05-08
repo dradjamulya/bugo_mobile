@@ -15,6 +15,7 @@ class InputSavingsScreen extends StatefulWidget {
 
 class _InputSavingsScreenState extends State<InputSavingsScreen> {
   final _amountController = TextEditingController();
+  final _descriptionController = TextEditingController(); // New field
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
 
@@ -58,20 +59,20 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
     if (user == null || _selectedTargetId == null) return;
 
     final amount = parseRupiah(_amountController.text.trim());
-    if (amount == 0) return;
+    final description = _descriptionController.text.trim();
+    if (amount == 0 || description.isEmpty) return;
 
     await _firestore.collection('savings').add({
       'user_id': user.uid,
       'target_id': _selectedTargetId,
       'amount': amount,
+      'description': description,
       'timestamp': Timestamp.now(),
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Savings saved successfully")),
     );
-
-    Navigator.pop(context); // Atau ganti ke halaman lain jika perlu
   }
 
   @override
@@ -135,6 +136,35 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
                         decoration: const InputDecoration(
                           border: InputBorder.none,
                           hintText: 'Add Amount',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    // Input Description - Where'd you earn this?
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: ShapeDecoration(
+                        color: const Color(0xFFECFEFD),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        shadows: const [
+                          BoxShadow(
+                            color: Color(0x3F000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 4),
+                          )
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _descriptionController,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(fontSize: 12),
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: "Where'd you earn this?",
                         ),
                       ),
                     ),

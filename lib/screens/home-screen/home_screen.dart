@@ -1,4 +1,4 @@
-import 'package:bugo_mobile/screens/target-screen/input_savings.dart';
+import 'package:bugo_mobile/screens/target-screen/input_savings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
