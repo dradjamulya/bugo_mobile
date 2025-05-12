@@ -213,7 +213,7 @@ class _TargetScreenState extends State<TargetScreen> {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(height: 5),
+                          const SizedBox(height: 10),
                           Text(
                             currency.format(totalSavings),
                             style: GoogleFonts.poppins(
@@ -234,7 +234,8 @@ class _TargetScreenState extends State<TargetScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 9),
+                    
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
@@ -263,6 +264,7 @@ class _TargetScreenState extends State<TargetScreen> {
                           ),
                         );
                       },
+                      
                       child: Container(
                         width: 72,
                         height: 38,
@@ -286,7 +288,7 @@ class _TargetScreenState extends State<TargetScreen> {
                             'assets/icons/plus.png',
                             width: 26,
                             height: 26,
-                            color: Colors.black,
+                            color: Color(0xFF342E37),
                           ),
                         ),
                       ),

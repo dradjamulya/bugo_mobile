@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'login_screen.dart';
 import '../home-screen/home_screen.dart';
 import '../target-screen/target_screen.dart';
 import 'change_password_screen.dart';
@@ -26,9 +27,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> fetchUserData() async {
     try {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+      final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        final doc =
+            await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
         setState(() {
           username = doc['username'];
@@ -83,14 +85,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: 50),
-
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
                       const SizedBox(height: 100),
                       // Username Field
-                      buildTextField(hint: username.isNotEmpty ? username : 'Username'),
+                      buildTextField(
+                          hint: username.isNotEmpty ? username : 'Username'),
 
                       const SizedBox(height: 28),
 
@@ -133,12 +135,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             border: InputBorder.none,
                             hintText: 'Password',
                             suffixIcon: IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.black, size: 15),
+                              icon: const Icon(Icons.edit,
+                                  color: Colors.black, size: 15),
                               onPressed: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const ChangePasswordScreen(),
+                                    builder: (context) =>
+                                        const ChangePasswordScreen(),
                                   ),
                                 );
                               },
@@ -147,7 +151,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 100),
+                      const SizedBox(height: 50),
+// Tombol Logout
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFFED66),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 50, vertical: 10),
+                        ),
+                        onPressed: () async {
+                          await FirebaseAuth.instance.signOut();
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const LoginScreen()),
+                            (route) => false,
+                          );
+                        },
+                        child: Text(
+                          'LOG OUT',
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF342E37),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 120),
 
                       // Copyright
                       Text(

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import '../home-screen/home_screen.dart';
 import '../auth-screen/profile_screen.dart';
 
@@ -15,7 +16,7 @@ class InputSavingsScreen extends StatefulWidget {
 
 class _InputSavingsScreenState extends State<InputSavingsScreen> {
   final _amountController = TextEditingController();
-  final _descriptionController = TextEditingController(); // New field
+  final _descriptionController = TextEditingController();
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
 
@@ -90,19 +91,70 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
                 children: [
                   ClipPath(
                     clipper: TopCurveClipper(),
-                    child: Container(height: 250, color: const Color(0xFFE13D56)),
+                    child:
+                        Container(height: 380, color: const Color(0xFFE13D56)),
                   ),
                   Expanded(child: Container(color: const Color(0xFFBCFDF7))),
                 ],
               ),
             ),
 
+            Column(
+              children: [
+                const SizedBox(height: 60),
+                Row(
+                  children: [
+                    const SizedBox(width: 20),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 18, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF342E37),
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x3F000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 4),
+                            )
+                          ],
+                        ),
+                        child: Text(
+                          'Back',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    'Add some cash\nto your savings!',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      height: 1.54,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
             Center(
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    const SizedBox(height: 170),
-
                     // Input Amount
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 40),
@@ -197,7 +249,8 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
                                     child: Center(
                                       child: Text(
                                         entry.value,
-                                        style: GoogleFonts.poppins(fontSize: 12),
+                                        style:
+                                            GoogleFonts.poppins(fontSize: 12),
                                       ),
                                     ),
                                   ))
@@ -221,11 +274,12 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
                     // Save Button
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.yellow,
+                        backgroundColor: Color(0xFFFFED66),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 50, vertical: 10),
                       ),
                       onPressed: _saveSavings,
                       child: Text(
@@ -248,7 +302,8 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
               left: 20,
               right: 20,
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE13D56),
                   borderRadius: BorderRadius.circular(30),
@@ -267,7 +322,8 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
                           ),
                         );
                       },
-                      child: Image.asset('assets/icons/arrow.png', width: 33, height: 33),
+                      child: Image.asset('assets/icons/arrow.png',
+                          width: 33, height: 33),
                     ),
                     Image.asset(
                       'assets/icons/wallet.png',
@@ -286,7 +342,8 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
                           ),
                         );
                       },
-                      child: Image.asset('assets/icons/person.png', width: 35, height: 35),
+                      child: Image.asset('assets/icons/person.png',
+                          width: 35, height: 35),
                     ),
                   ],
                 ),
@@ -303,12 +360,12 @@ class TopCurveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     Path path = Path();
-    path.lineTo(0, size.height - 100);
+    path.lineTo(0, size.height - 120);
     path.quadraticBezierTo(
       size.width / 2,
-      size.height - 185,
+      size.height - 200,
       size.width,
-      size.height - 100,
+      size.height - 120,
     );
     path.lineTo(size.width, 0);
     path.close();

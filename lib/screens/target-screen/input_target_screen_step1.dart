@@ -1,3 +1,4 @@
+import 'package:bugo_mobile/screens/target-screen/input_screen.dart';
 import 'package:bugo_mobile/screens/target-screen/target_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
@@ -175,7 +176,7 @@ class _InputTargetScreenStep1State extends State<InputTargetScreenStep1> {
                           PageRouteBuilder(
                             transitionDuration:
                                 const Duration(milliseconds: 300),
-                            pageBuilder: (_, __, ___) => const TargetScreen(),
+                            pageBuilder: (_, __, ___) => const InputScreen(),
                             transitionsBuilder: (_, animation, __, child) {
                               final tween = Tween(
                                       begin: const Offset(-1, 0),

@@ -234,7 +234,7 @@ class InputScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 PageRouteBuilder(
-                  transitionDuration: const Duration(milliseconds: 200),
+                  transitionDuration: const Duration(milliseconds: 300),
                   pageBuilder: (_, __, ___) => page,
                   transitionsBuilder: (_, animation, __, child) {
                     const begin = Offset(1.0, 0.0);
