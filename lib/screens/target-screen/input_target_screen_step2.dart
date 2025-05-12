@@ -132,7 +132,7 @@ class InputTargetScreenStep2 extends StatelessWidget {
                           context,
                           PageRouteBuilder(
                             transitionDuration:
-                                const Duration(milliseconds: 100),
+                                const Duration(milliseconds: 300),
                             pageBuilder: (_, __, ___) =>
                                 const InputTargetScreenStep1(),
                             transitionsBuilder: (_, animation, __, child) {

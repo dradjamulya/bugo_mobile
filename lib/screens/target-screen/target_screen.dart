@@ -7,6 +7,7 @@ import 'input_screen.dart';
 import '../home-screen/home_screen.dart';
 import '../auth-screen/profile_screen.dart';
 import 'package:intl/intl.dart';
+import 'dart:math';
 
 class TargetScreen extends StatefulWidget {
   const TargetScreen({Key? key}) : super(key: key);
@@ -139,20 +140,35 @@ class _TargetScreenState extends State<TargetScreen> {
                                     context,
                                     PageRouteBuilder(
                                       transitionDuration:
-                                          const Duration(milliseconds: 100),
-                                      pageBuilder: (_, __, ___) =>
+                                          const Duration(milliseconds: 800),
+                                      pageBuilder: (context, animation,
+                                              secondaryAnimation) =>
                                           const BalanceScreen(),
                                       transitionsBuilder: (context, animation,
                                           secondaryAnimation, child) {
-                                        const begin = Offset(1.0, 0.0);
-                                        const end = Offset.zero;
-                                        final tween =
-                                            Tween(begin: begin, end: end).chain(
-                                                CurveTween(
-                                                    curve: Curves.easeInOut));
-                                        return SlideTransition(
-                                          position: animation.drive(tween),
-                                          child: child,
+                                        final rotate =
+                                            Tween(begin: pi, end: 0.0)
+                                                .animate(animation);
+
+                                        return AnimatedBuilder(
+                                          animation: rotate,
+                                          builder: (context, _) {
+                                            final isUnder =
+                                                rotate.value < pi / 2;
+
+                                            return Transform(
+                                              alignment: Alignment.center,
+                                              transform: Matrix4.identity()
+                                                ..setEntry(
+                                                    3, 2, 0.001) 
+                                                ..rotateY(rotate.value),
+                                              child: isUnder
+                                                  ? child
+                                                  : Container(
+                                                      color:
+                                                          Colors.transparent),
+                                            );
+                                          },
                                         );
                                       },
                                     ),
@@ -225,7 +241,7 @@ class _TargetScreenState extends State<TargetScreen> {
                           context,
                           PageRouteBuilder(
                             transitionDuration:
-                                const Duration(milliseconds: 100),
+                                const Duration(milliseconds: 300),
                             pageBuilder:
                                 (context, animation, secondaryAnimation) =>
                                     const InputScreen(),

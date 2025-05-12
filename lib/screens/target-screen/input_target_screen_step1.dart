@@ -174,7 +174,7 @@ class _InputTargetScreenStep1State extends State<InputTargetScreenStep1> {
                           context,
                           PageRouteBuilder(
                             transitionDuration:
-                                const Duration(milliseconds: 100),
+                                const Duration(milliseconds: 300),
                             pageBuilder: (_, __, ___) => const TargetScreen(),
                             transitionsBuilder: (_, animation, __, child) {
                               final tween = Tween(

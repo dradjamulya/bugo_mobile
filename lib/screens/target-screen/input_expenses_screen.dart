@@ -6,14 +6,14 @@ import 'package:google_fonts/google_fonts.dart';
 import '../home-screen/home_screen.dart';
 import '../auth-screen/profile_screen.dart';
 
-class InputExpenseScreen extends StatefulWidget {
-  const InputExpenseScreen({super.key});
+class InputExpensesScreen extends StatefulWidget {
+  const InputExpensesScreen({super.key});
 
   @override
-  State<InputExpenseScreen> createState() => _InputExpenseScreenState();
+  State<InputExpensesScreen> createState() => _InputExpensesScreenState();
 }
 
-class _InputExpenseScreenState extends State<InputExpenseScreen> {
+class _InputExpensesScreenState extends State<InputExpensesScreen> {
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _firestore = FirebaseFirestore.instance;
@@ -60,7 +60,6 @@ class _InputExpenseScreenState extends State<InputExpenseScreen> {
 
     final amount = parseRupiah(_amountController.text.trim());
     final description = _descriptionController.text.trim();
-
     if (amount == 0 || description.isEmpty) return;
 
     await _firestore.collection('expenses').add({
@@ -74,187 +73,243 @@ class _InputExpenseScreenState extends State<InputExpenseScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Expense saved successfully")),
     );
-
-    _amountController.clear();
-    _descriptionController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(color: const Color(0xFFBCFDF7)),
-          Positioned.fill(
-            child: Column(
-              children: [
-                ClipPath(
-                  clipper: TopCurveClipper(),
-                  child: Container(height: 250, color: const Color(0xFFE13D56)),
-                ),
-                Expanded(child: Container(color: const Color(0xFFBCFDF7))),
-              ],
-            ),
-          ),
-          Center(
-            child: SingleChildScrollView(
+      body: SizedBox(
+        width: double.infinity,
+        height: double.infinity,
+        child: Stack(
+          children: [
+            Container(color: const Color(0xFFBCFDF7)),
+            Positioned.fill(
               child: Column(
                 children: [
-                  const SizedBox(height: 170),
-
-                  // Add Amount
-                  inputBox(
-                    controller: _amountController,
-                    hint: 'Add Amount',
-                    isRupiah: true,
+                  ClipPath(
+                    clipper: TopCurveClipper(),
+                    child: Container(height: 250, color: const Color(0xFFE13D56)),
                   ),
-                  const SizedBox(height: 30),
+                  Expanded(child: Container(color: const Color(0xFFBCFDF7))),
+                ],
+              ),
+            ),
 
-                  // Description Field
-                  inputBox(
-                    controller: _descriptionController,
-                    hint: "What's it for?",
-                  ),
-                  const SizedBox(height: 30),
+            Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 170),
 
-                  // Target Dropdown
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 40),
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    decoration: ShapeDecoration(
-                      color: const Color(0xFFECFEFD),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+                    // Input Amount
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: ShapeDecoration(
+                        color: const Color(0xFFECFEFD),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        shadows: const [
+                          BoxShadow(
+                            color: Color(0x3F000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 4),
+                          )
+                        ],
                       ),
-                      shadows: const [
-                        BoxShadow(
-                          color: Color(0x3F000000),
-                          blurRadius: 4,
-                          offset: Offset(0, 4),
-                        )
-                      ],
+                      child: TextField(
+                        controller: _amountController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          CurrencyInputFormatter(
+                            leadingSymbol: 'Rp',
+                            useSymbolPadding: true,
+                            thousandSeparator: ThousandSeparator.Period,
+                            mantissaLength: 0,
+                          ),
+                        ],
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(fontSize: 12),
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Add Amount',
+                        ),
+                      ),
                     ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        value: _selectedTargetId,
-                        items: _targets.entries
-                            .map((entry) => DropdownMenuItem<String>(
-                                  value: entry.key,
-                                  child: Center(
-                                    child: Text(
-                                      entry.value,
-                                      style: GoogleFonts.poppins(fontSize: 12),
+                    const SizedBox(height: 30),
+
+                    // Input Description - Where'd you earn this?
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: ShapeDecoration(
+                        color: const Color(0xFFECFEFD),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        shadows: const [
+                          BoxShadow(
+                            color: Color(0x3F000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 4),
+                          )
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _descriptionController,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(fontSize: 12),
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: "What's it for?",
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    // Dropdown Target
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: ShapeDecoration(
+                        color: const Color(0xFFECFEFD),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        shadows: const [
+                          BoxShadow(
+                            color: Color(0x3F000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 4),
+                          )
+                        ],
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          value: _selectedTargetId,
+                          items: _targets.entries
+                              .map((entry) => DropdownMenuItem<String>(
+                                    value: entry.key,
+                                    child: Center(
+                                      child: Text(
+                                        entry.value,
+                                        style: GoogleFonts.poppins(fontSize: 12),
+                                      ),
                                     ),
-                                  ),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedTargetId = value;
-                          });
-                        },
-                        hint: Center(
-                          child: Text(
-                            'Choose Target to Reduce Savings Amount',
-                            style: GoogleFonts.poppins(fontSize: 12),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedTargetId = value;
+                            });
+                          },
+                          hint: Center(
+                            child: Text(
+                              'Choose Target to Allocate Savings',
+                              style: GoogleFonts.poppins(fontSize: 12),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 50),
+                    const SizedBox(height: 50),
 
-                  // Save Button
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.yellow,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+                    // Save Button
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.yellow,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-                    ),
-                    onPressed: _saveExpense,
-                    child: Text(
-                      'Save',
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xFF342E37),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                      onPressed: _saveExpense,
+                      child: Text(
+                        'Save',
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFF342E37),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
 
-          // Bottom Navigation
-          Positioned(
-            bottom: 10,
-            left: 20,
-            right: 20,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE13D56),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder: (_, __, ___) => const HomeScreen(),
-                          transitionDuration: Duration.zero,
-                          reverseTransitionDuration: Duration.zero,
-                        ),
-                      );
-                    },
-                    child: Image.asset('assets/icons/arrow.png', width: 33, height: 33),
-                  ),
-                  Image.asset(
-                    'assets/icons/wallet.png',
-                    width: 35,
-                    height: 35,
-                    color: const Color(0xFF342E37),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder: (_, __, ___) => const ProfileScreen(),
-                          transitionDuration: Duration.zero,
-                          reverseTransitionDuration: Duration.zero,
-                        ),
-                      );
-                    },
-                    child: Image.asset('assets/icons/person.png', width: 35, height: 35),
-                  ),
-                ],
+            // Bottom Navigation
+            Positioned(
+              bottom: 10,
+              left: 20,
+              right: 20,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE13D56),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (_, __, ___) => const HomeScreen(),
+                            transitionDuration: Duration.zero,
+                            reverseTransitionDuration: Duration.zero,
+                          ),
+                        );
+                      },
+                      child: Image.asset('assets/icons/arrow.png', width: 33, height: 33),
+                    ),
+                    Image.asset(
+                      'assets/icons/wallet.png',
+                      width: 35,
+                      height: 35,
+                      color: const Color(0xFF342E37),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (_, __, ___) => const ProfileScreen(),
+                            transitionDuration: Duration.zero,
+                            reverseTransitionDuration: Duration.zero,
+                          ),
+                        );
+                      },
+                      child: Image.asset('assets/icons/person.png', width: 35, height: 35),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget inputBox({
+  Widget _buildInputContainer({
     required TextEditingController controller,
-    required String hint,
-    bool isRupiah = false,
+    required String hintText,
+    bool isCurrency = false,
   }) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 40),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: ShapeDecoration(
         color: const Color(0xFFECFEFD),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
         shadows: const [
           BoxShadow(
             color: Color(0x3F000000),
@@ -265,21 +320,22 @@ class _InputExpenseScreenState extends State<InputExpenseScreen> {
       ),
       child: TextField(
         controller: controller,
-        keyboardType: TextInputType.number,
-        inputFormatters: isRupiah
+        keyboardType: isCurrency ? TextInputType.number : TextInputType.text,
+        inputFormatters: isCurrency
             ? [
                 CurrencyInputFormatter(
                   leadingSymbol: 'Rp',
+                  useSymbolPadding: true,
                   thousandSeparator: ThousandSeparator.Period,
                   mantissaLength: 0,
-                )
+                ),
               ]
             : [],
         textAlign: TextAlign.center,
         style: GoogleFonts.poppins(fontSize: 12),
         decoration: InputDecoration(
           border: InputBorder.none,
-          hintText: hint,
+          hintText: hintText,
         ),
       ),
     );

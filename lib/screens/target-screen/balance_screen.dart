@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,18 +16,17 @@ class _BalanceScreenState extends State<BalanceScreen> {
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
 
-  late Future<List<Map<String, dynamic>>> _transactions;
-  int _totalSavings = 0;
+  late Future<Map<String, dynamic>> _data;
 
   @override
   void initState() {
     super.initState();
-    _transactions = fetchTransactions();
+    _data = fetchTransactions();
   }
 
-  Future<List<Map<String, dynamic>>> fetchTransactions() async {
+  Future<Map<String, dynamic>> fetchTransactions() async {
     final user = _auth.currentUser;
-    if (user == null) return [];
+    if (user == null) return {};
 
     final savingsSnapshot = await _firestore
         .collection('savings')
@@ -39,27 +39,24 @@ class _BalanceScreenState extends State<BalanceScreen> {
         .get();
 
     List<Map<String, dynamic>> transactions = [];
-
-    int total = 0;
+    int totalSavings = 0;
 
     for (var doc in savingsSnapshot.docs) {
-      final int amount = doc['amount'];
-      total += amount;
+      int amount = doc['amount'];
+      totalSavings += amount;
       transactions.add({
         'type': 'savings',
         'amount': amount,
-        'description': doc['description'] ?? "Savings",
+        'description': doc['description'] ?? 'Savings',
         'timestamp': doc['timestamp'] ?? Timestamp.now(),
       });
     }
 
     for (var doc in expensesSnapshot.docs) {
-      final int amount = doc['amount'];
-      total -= amount;
       transactions.add({
         'type': 'expense',
-        'amount': amount,
-        'description': doc['description'] ?? "Expense",
+        'amount': doc['amount'],
+        'description': doc['description'] ?? 'Expense',
         'timestamp': doc['timestamp'] ?? Timestamp.now(),
       });
     }
@@ -67,9 +64,10 @@ class _BalanceScreenState extends State<BalanceScreen> {
     transactions.sort((a, b) =>
         (b['timestamp'] as Timestamp).compareTo(a['timestamp'] as Timestamp));
 
-    _totalSavings = total;
-
-    return transactions;
+    return {
+      'total_savings': totalSavings,
+      'transactions': transactions,
+    };
   }
 
   @override
@@ -83,81 +81,49 @@ class _BalanceScreenState extends State<BalanceScreen> {
           Container(color: const Color(0xFFBCFDF7)),
           ClipPath(
             clipper: BottomCurveClipper(),
-            child: Container(height: 300, color: const Color(0xFFE13D56)),
+            child: Container(height: 400, color: const Color(0xFFE13D56)),
           ),
-          FutureBuilder<List<Map<String, dynamic>>>(
-            future: _transactions,
+          FutureBuilder<Map<String, dynamic>>(
+            future: _data,
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
+              if (!snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text("No transactions found"));
-              }
 
-              final transactions = snapshot.data!;
+              final total = snapshot.data!['total_savings'] ?? 0;
+              final transactions =
+                  snapshot.data!['transactions'] as List<Map<String, dynamic>>;
 
               return SingleChildScrollView(
-                padding: const EdgeInsets.only(top: 100, bottom: 100),
+                padding: const EdgeInsets.only(bottom: 100),
                 child: Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 18, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF342E37),
-                                borderRadius: BorderRadius.circular(30),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x3F000000),
-                                    blurRadius: 4,
-                                    offset: Offset(0, 4),
-                                  )
-                                ],
-                              ),
-                              child: Text(
-                                'Back',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    Text(
-                      'Current Savings',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                    const SizedBox(height: 70),
+                    Center(
+                      child: Text(
+                        'Current Savings:',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      currencyFormat.format(_totalSavings),
+                      currencyFormat.format(total),
                       style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontSize: 34,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 25),
+                    const SizedBox(height: 30),
                     ...transactions.map((tx) {
-                      final isExpense = tx['type'] == 'expense';
                       final date = (tx['timestamp'] as Timestamp).toDate();
                       final formattedDate =
                           DateFormat('d MMMM yyyy', 'id_ID').format(date);
+                      final isExpense = tx['type'] == 'expense';
 
                       return Container(
                         margin: const EdgeInsets.symmetric(
@@ -171,37 +137,36 @@ class _BalanceScreenState extends State<BalanceScreen> {
                               color: Color(0x3F000000),
                               blurRadius: 4,
                               offset: Offset(0, 4),
-                            ),
+                            )
                           ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              tx['description'] ?? "-",
+                              tx['description'],
                               style: GoogleFonts.poppins(
-                                color: const Color(0xFF342E37),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
+                                color: const Color(0xFF342E37),
                               ),
                             ),
                             const SizedBox(height: 5),
                             Text(
                               currencyFormat.format(tx['amount']),
                               style: GoogleFonts.poppins(
-                                color:
-                                    isExpense ? Colors.red : const Color(0xFF000000),
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
+                                color: isExpense ? Colors.red : Colors.black,
                               ),
                             ),
                             const SizedBox(height: 5),
                             Text(
                               formattedDate,
                               style: GoogleFonts.poppins(
-                                color: const Color(0xFF342E37),
                                 fontSize: 12,
                                 fontStyle: FontStyle.italic,
+                                color: const Color(0xFF342E37),
                               ),
                             ),
                           ],
