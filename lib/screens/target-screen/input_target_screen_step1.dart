@@ -1,5 +1,4 @@
 import 'package:bugo_mobile/screens/target-screen/input_screen.dart';
-import 'package:bugo_mobile/screens/target-screen/target_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:google_fonts/google_fonts.dart';
