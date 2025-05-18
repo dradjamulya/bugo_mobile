@@ -1,3 +1,4 @@
+import 'package:bugo_mobile/screens/target-screen/target_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -73,6 +74,31 @@ class _InputSavingsScreenState extends State<InputSavingsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Savings saved successfully")),
     );
+
+    Future.delayed(const Duration(milliseconds: 300), () {
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 300),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const TargetScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(-1.0, 0.0); 
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+
+            final tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            final offsetAnimation = animation.drive(tween);
+
+            return SlideTransition(
+              position: offsetAnimation,
+              child: child,
+            );
+          },
+        ),
+      );
+    });
   }
 
   @override

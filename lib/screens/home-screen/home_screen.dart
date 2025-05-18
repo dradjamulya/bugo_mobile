@@ -1,4 +1,3 @@
-import 'package:bugo_mobile/screens/target-screen/input_savings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     fetchUsername();
     fetchFavoriteTarget();
+    fetchTotalEmergencyFund();
   }
 
   Future<void> fetchUsername() async {
@@ -59,19 +59,51 @@ class _HomeScreenState extends State<HomeScreen> {
           .where('target_id', isEqualTo: targetId)
           .get();
 
+      final expensesQuery = await FirebaseFirestore.instance
+          .collection('expenses')
+          .where('user_id', isEqualTo: uid)
+          .where('target_id', isEqualTo: targetId)
+          .get();
+
       int totalSaved = 0;
       for (var doc in savingsQuery.docs) {
         totalSaved += (doc['amount'] as int?) ?? 0;
       }
 
+      int totalExpenses = 0;
+      for (var doc in expensesQuery.docs) {
+        totalExpenses += (doc['amount'] as int?) ?? 0;
+      }
+
       setState(() {
         favoriteTarget = {
           'name': data['target_name'],
-          'saved': totalSaved,
+          'saved': totalSaved - totalExpenses, // dikurangi expenses
           'total': data['target_amount'],
         };
       });
     }
+  }
+
+  int totalEmergencyFund = 0;
+
+  Future<void> fetchTotalEmergencyFund() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final targetsQuery = await FirebaseFirestore.instance
+        .collection('targets')
+        .where('user_id', isEqualTo: uid)
+        .get();
+
+    int total = 0;
+    for (var doc in targetsQuery.docs) {
+      total += (doc['emergency_fund'] as int?) ?? 0;
+    }
+
+    setState(() {
+      totalEmergencyFund = total;
+    });
   }
 
   @override
@@ -190,15 +222,26 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                     ),
                   ),
-                  
                   Positioned(
                     bottom: -35,
                     child: GestureDetector(
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (context) => const InputSavingsScreen()),
+                          PageRouteBuilder(
+                            transitionDuration:
+                                const Duration(milliseconds: 300),
+                            pageBuilder: (_, __, ___) => const TargetScreen(),
+                            transitionsBuilder: (_, animation, __, child) {
+                              final tween = Tween(
+                                      begin: const Offset(1, 0),
+                                      end: Offset.zero)
+                                  .chain(CurveTween(curve: Curves.easeInOut));
+                              return SlideTransition(
+                                  position: animation.drive(tween),
+                                  child: child);
+                            },
+                          ),
                         ).then((_) {
                           fetchFavoriteTarget();
                         });
@@ -266,7 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Rp999.000.000.000',
+                        'Rp${NumberFormat("#,###", "id_ID").format(totalEmergencyFund)}',
                         style: GoogleFonts.poppins(
                           color: const Color(0xFF342E37),
                           fontSize: 28,

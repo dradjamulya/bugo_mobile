@@ -19,7 +19,6 @@ class TargetScreen extends StatefulWidget {
 class _TargetScreenState extends State<TargetScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
   late Future<Map<String, dynamic>> _targetData;
 
   Future<Map<String, dynamic>> fetchData() async {
@@ -36,38 +35,53 @@ class _TargetScreenState extends State<TargetScreen> {
         .where('user_id', isEqualTo: user.uid)
         .get();
 
+    final expensesSnapshot = await _firestore
+        .collection('expenses')
+        .where('user_id', isEqualTo: user.uid)
+        .get();
+
     final validTargetIds = targetsSnapshot.docs.map((doc) => doc.id).toSet();
 
-    int totalSavings = 0;
-    int totalTargetAmount = 0;
-
     Map<String, int> savingsPerTarget = {};
-    List<Map<String, dynamic>> targets = [];
+    Map<String, int> expensesPerTarget = {};
+    int totalTargetAmount = 0;
 
     for (var doc in savingsSnapshot.docs) {
       String targetId = doc['target_id'];
       if (!validTargetIds.contains(targetId)) continue;
-
       int amount = doc['amount'] ?? 0;
-      totalSavings += amount;
       savingsPerTarget[targetId] = (savingsPerTarget[targetId] ?? 0) + amount;
     }
+
+    for (var doc in expensesSnapshot.docs) {
+      String targetId = doc['target_id'];
+      if (!validTargetIds.contains(targetId)) continue;
+      int amount = doc['amount'] ?? 0;
+      expensesPerTarget[targetId] = (expensesPerTarget[targetId] ?? 0) + amount;
+    }
+
+    List<Map<String, dynamic>> targets = [];
+    int totalSavings = 0;
 
     for (var doc in targetsSnapshot.docs) {
       final data = doc.data();
       final targetId = doc.id;
-      final int amount = (data['target_amount'] is int)
+      final int targetAmount = (data['target_amount'] is int)
           ? data['target_amount']
           : int.tryParse(data['target_amount'].toString()) ?? 0;
 
-      totalTargetAmount += amount ?? 0;
+      final int saved = (savingsPerTarget[targetId] ?? 0) - (expensesPerTarget[targetId] ?? 0);
+      final int validSaved = saved < 0 ? 0 : saved;
+
+      totalTargetAmount += targetAmount;
+      totalSavings += validSaved;
 
       targets.add({
         'id': targetId,
         'target_name': data['target_name'],
-        'target_amount': amount,
+        'target_amount': targetAmount,
         'target_deadline': data['target_deadline'],
-        'saved_amount': savingsPerTarget[targetId] ?? 0,
+        'saved_amount': validSaved,
         'is_favorite': data['is_favorite'] ?? false,
       });
     }
@@ -104,116 +118,89 @@ class _TargetScreenState extends State<TargetScreen> {
             clipper: BottomCurveClipper(),
             child: Container(height: 400, color: const Color(0xFFE13D56)),
           ),
-          FutureBuilder<Map<String, dynamic>>(
-            future: _targetData,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text("No data found"));
-              }
+          Positioned(
+            top: 60,
+            left: 20,
+            right: 20,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Flip Button (LEFT)
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        transitionDuration: const Duration(milliseconds: 800),
+                        pageBuilder: (_, __, ___) => const BalanceScreen(),
+                        transitionsBuilder: (_, animation, __, child) {
+                          final rotate = Tween(begin: pi, end: 0.0).animate(animation);
+                          return AnimatedBuilder(
+                            animation: rotate,
+                            builder: (_, __) {
+                              final isUnder = rotate.value < pi / 2;
+                              return Transform(
+                                alignment: Alignment.center,
+                                transform: Matrix4.identity()
+                                  ..setEntry(3, 2, 0.001)
+                                  ..rotateY(rotate.value),
+                                child: isUnder ? child : Container(color: Colors.transparent),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 63,
+                    height: 33,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF342E37),
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Flip',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
 
-              final currency = NumberFormat.currency(
-                  locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
-              final totalSavings = snapshot.data!['total_savings'] as int;
-              final totalTarget = snapshot.data!['total_target'] as int;
-              final targets = snapshot.data!['targets'] as List;
+                // Centered content
+                Center(
+                  child: FutureBuilder<Map<String, dynamic>>(
+                    future: _targetData,
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) return const SizedBox.shrink();
+                      final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
+                      final totalSavings = snapshot.data!['total_savings'] as int;
+                      final totalTarget = snapshot.data!['total_target'] as int;
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 120),
-                child: Column(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 40),
-                      child: Column(
+                      return Column(
                         children: [
-                          const SizedBox(height: 35),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    PageRouteBuilder(
-                                      transitionDuration:
-                                          const Duration(milliseconds: 800),
-                                      pageBuilder: (context, animation,
-                                              secondaryAnimation) =>
-                                          const BalanceScreen(),
-                                      transitionsBuilder: (context, animation,
-                                          secondaryAnimation, child) {
-                                        final rotate =
-                                            Tween(begin: pi, end: 0.0)
-                                                .animate(animation);
-
-                                        return AnimatedBuilder(
-                                          animation: rotate,
-                                          builder: (context, _) {
-                                            final isUnder =
-                                                rotate.value < pi / 2;
-
-                                            return Transform(
-                                              alignment: Alignment.center,
-                                              transform: Matrix4.identity()
-                                                ..setEntry(
-                                                    3, 2, 0.001) 
-                                                ..rotateY(rotate.value),
-                                              child: isUnder
-                                                  ? child
-                                                  : Container(
-                                                      color:
-                                                          Colors.transparent),
-                                            );
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  width: 63,
-                                  height: 33,
-                                  decoration: ShapeDecoration(
-                                    color: const Color(0xFF342E37),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                    shadows: const [
-                                      BoxShadow(
-                                        color: Color(0x3F000000),
-                                        blurRadius: 4,
-                                        offset: Offset(0, 4),
-                                      )
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      'Flip',
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
                           Text(
-                            'Current Target :',
+                            'Current Target:',
                             style: GoogleFonts.poppins(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 15),
                           Text(
                             currency.format(totalSavings),
                             style: GoogleFonts.poppins(
@@ -222,7 +209,7 @@ class _TargetScreenState extends State<TargetScreen> {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
                           Text(
                             currency.format(totalTarget),
                             style: GoogleFonts.poppins(
@@ -231,169 +218,160 @@ class _TargetScreenState extends State<TargetScreen> {
                               fontWeight: FontWeight.w400,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 9),
-                    
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            transitionDuration:
-                                const Duration(milliseconds: 300),
-                            pageBuilder:
-                                (context, animation, secondaryAnimation) =>
-                                    const InputScreen(),
-                            transitionsBuilder: (context, animation,
-                                secondaryAnimation, child) {
-                              const begin = Offset(1.0, 0.0);
-                              const end = Offset.zero;
-                              const curve = Curves.easeInOut;
-
-                              final tween = Tween(begin: begin, end: end)
-                                  .chain(CurveTween(curve: curve));
-                              final offsetAnimation = animation.drive(tween);
-
-                              return SlideTransition(
-                                position: offsetAnimation,
-                                child: child,
+                          const SizedBox(height: 55),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  transitionDuration: const Duration(milliseconds: 300),
+                                  pageBuilder: (_, __, ___) => const InputScreen(),
+                                  transitionsBuilder: (_, animation, __, child) {
+                                    final tween = Tween(begin: const Offset(1, 0), end: Offset.zero)
+                                        .chain(CurveTween(curve: Curves.easeInOut));
+                                    return SlideTransition(position: animation.drive(tween), child: child);
+                                  },
+                                ),
                               );
                             },
-                          ),
-                        );
-                      },
-                      
-                      child: Container(
-                        width: 72,
-                        height: 38,
-                        decoration: ShapeDecoration(
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            side: const BorderSide(
-                                width: 5, color: Color(0xFFE13D56)),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          shadows: const [
-                            BoxShadow(
-                              color: Color(0x3F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                            )
-                          ],
-                        ),
-                        child: Center(
-                          child: Image.asset(
-                            'assets/icons/plus.png',
-                            width: 26,
-                            height: 26,
-                            color: Color(0xFF342E37),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 25),
-                    ...targets.map((target) {
-                      final isFavorite = target['is_favorite'] ?? false;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Container(
-                              width: 401,
-                              height: 133,
-                              decoration: ShapeDecoration(
-                                color: const Color(0xFFECFEFD),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                shadows: const [
+                            child: Container(
+                              width: 72,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(30),
+                                border: Border.all(width: 5, color: const Color(0xFFE13D56)),
+                                boxShadow: const [
                                   BoxShadow(
                                     color: Color(0x3F000000),
                                     blurRadius: 4,
                                     offset: Offset(0, 4),
-                                  )
-                                ],
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 18, vertical: 20),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    target['target_name'],
-                                    style: GoogleFonts.poppins(
-                                      color: const Color(0xFF342E37),
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  RichText(
-                                    text: TextSpan(
-                                      children: [
-                                        TextSpan(
-                                          text:
-                                              '${currency.format(target['saved_amount'])}\n',
-                                          style: const TextStyle(
-                                            color: Color(0xFF342E37),
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text:
-                                              '/ ${currency.format(target['target_amount'])}',
-                                          style: const TextStyle(
-                                            color: Color(0xFF9D8DF1),
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    'Completion Plan : ${target['target_deadline']}',
-                                    style: GoogleFonts.poppins(
-                                      color: const Color(0xFF342E37),
-                                      fontSize: 12,
-                                      fontStyle: FontStyle.italic,
-                                      fontWeight: FontWeight.w400,
-                                    ),
                                   ),
                                 ],
                               ),
-                            ),
-                            Positioned(
-                              right: 20,
-                              top: 31,
-                              child: GestureDetector(
-                                onTap: () {
-                                  toggleFavorite(target['id'], isFavorite);
-                                },
-                                child: Icon(
-                                  isFavorite ? Icons.star : Icons.star_border,
-                                  size: 67,
-                                  color: isFavorite
-                                      ? Color(0xFFFFED66)
-                                      : Colors.grey,
+                              child: Center(
+                                child: Image.asset(
+                                  'assets/icons/plus.png',
+                                  width: 26,
+                                  height: 26,
+                                  color: const Color(0xFF342E37),
                                 ),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       );
-                    }).toList(),
-                  ],
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Target List
+          FutureBuilder<Map<String, dynamic>>(
+            future: _targetData,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return const SizedBox.shrink();
+              final targets = snapshot.data!['targets'] as List;
+              final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
+
+              return Padding(
+                padding: const EdgeInsets.only(top: 350, bottom: 90),
+                child: ListView.builder(
+                  itemCount: targets.length,
+                  itemBuilder: (context, index) {
+                    final target = targets[index];
+                    final isFavorite = target['is_favorite'] ?? false;
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            height: 133,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFECFEFD),
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x3F000000),
+                                  blurRadius: 4,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  target['target_name'],
+                                  style: GoogleFonts.poppins(
+                                    color: const Color(0xFF342E37),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                RichText(
+                                  text: TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: '${currency.format(target['saved_amount'])}\n',
+                                        style: const TextStyle(
+                                          color: Color(0xFF342E37),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: '/ ${currency.format(target['target_amount'])}',
+                                        style: const TextStyle(
+                                          color: Color(0xFF9D8DF1),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  'Completion Plan : ${target['target_deadline']}',
+                                  style: GoogleFonts.poppins(
+                                    color: const Color(0xFF342E37),
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Positioned(
+                            right: 20,
+                            top: 31,
+                            child: GestureDetector(
+                              onTap: () => toggleFavorite(target['id'], isFavorite),
+                              child: Icon(
+                                isFavorite ? Icons.star : Icons.star_border,
+                                size: 67,
+                                color: isFavorite ? const Color(0xFFFFED66) : Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               );
             },
           ),
+
+          // Bottom Navbar
           Positioned(
             bottom: 10,
             left: 20,
@@ -408,38 +386,15 @@ class _TargetScreenState extends State<TargetScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder: (_, __, ___) => const HomeScreen(),
-                          transitionDuration: Duration.zero,
-                          reverseTransitionDuration: Duration.zero,
-                        ),
-                      );
-                    },
-                    child: Image.asset('assets/icons/arrow.png',
-                        width: 33, height: 33),
+                    onTap: () => Navigator.pushReplacement(context,
+                      PageRouteBuilder(pageBuilder: (_, __, ___) => const HomeScreen())),
+                    child: Image.asset('assets/icons/arrow.png', width: 33, height: 33),
                   ),
-                  Image.asset(
-                    'assets/icons/wallet.png',
-                    width: 35,
-                    height: 35,
-                    color: const Color(0xFF342E37),
-                  ),
+                  Image.asset('assets/icons/wallet.png', width: 35, height: 35, color: const Color(0xFF342E37)),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder: (_, __, ___) => const ProfileScreen(),
-                          transitionDuration: Duration.zero,
-                          reverseTransitionDuration: Duration.zero,
-                        ),
-                      );
-                    },
-                    child: Image.asset('assets/icons/person.png',
-                        width: 35, height: 35),
+                    onTap: () => Navigator.pushReplacement(context,
+                      PageRouteBuilder(pageBuilder: (_, __, ___) => const ProfileScreen())),
+                    child: Image.asset('assets/icons/person.png', width: 35, height: 35),
                   ),
                 ],
               ),
@@ -453,7 +408,6 @@ class _TargetScreenState extends State<TargetScreen> {
 
 class BottomCurveClipper extends CustomClipper<Path> {
   final double curveHeight;
-
   BottomCurveClipper({this.curveHeight = 120});
 
   @override

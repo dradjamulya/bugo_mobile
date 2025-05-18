@@ -17,18 +17,18 @@ class BalanceScreen extends StatefulWidget {
 class _BalanceScreenState extends State<BalanceScreen> {
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
-  late Future<List<Map<String, dynamic>>> _transactions;
-  int totalSavings = 0;
+
+  late Future<Map<String, dynamic>> _dataFuture;
 
   @override
   void initState() {
     super.initState();
-    _transactions = fetchTransactions();
+    _dataFuture = fetchTransactionsWithTotal();
   }
 
-  Future<List<Map<String, dynamic>>> fetchTransactions() async {
+  Future<Map<String, dynamic>> fetchTransactionsWithTotal() async {
     final user = _auth.currentUser;
-    if (user == null) return [];
+    if (user == null) return {'totalSavings': 0, 'transactions': []};
 
     final savingsSnapshot = await _firestore
         .collection('savings')
@@ -40,12 +40,14 @@ class _BalanceScreenState extends State<BalanceScreen> {
         .where('user_id', isEqualTo: user.uid)
         .get();
 
+    int total = 0;
     List<Map<String, dynamic>> transactions = [];
 
     for (var doc in savingsSnapshot.docs) {
       int amount = doc['amount'] ?? 0;
-      totalSavings += amount;
+      total += amount;
       transactions.add({
+        'id': doc.id,
         'type': 'savings',
         'amount': amount,
         'description': doc['description'] ?? "Savings",
@@ -55,9 +57,10 @@ class _BalanceScreenState extends State<BalanceScreen> {
 
     for (var doc in expensesSnapshot.docs) {
       int amount = doc['amount'] ?? 0;
-      totalSavings -= amount;
+      total -= amount;
       transactions.add({
-        'type': 'expense',
+        'id': doc.id,
+        'type': 'expenses',
         'amount': amount,
         'description': doc['description'] ?? "Expense",
         'timestamp': doc['timestamp'] ?? Timestamp.now(),
@@ -67,7 +70,33 @@ class _BalanceScreenState extends State<BalanceScreen> {
     transactions.sort((a, b) =>
         (b['timestamp'] as Timestamp).compareTo(a['timestamp'] as Timestamp));
 
-    return transactions;
+    return {'totalSavings': total, 'transactions': transactions};
+  }
+
+  void _confirmDelete(String id, String collection) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Delete'),
+        content: const Text('Are you sure want to delete this transaction?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await _firestore.collection(collection).doc(id).delete();
+              Navigator.pop(context);
+              setState(() {
+                _dataFuture = fetchTransactionsWithTotal();
+              });
+            },
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -82,77 +111,120 @@ class _BalanceScreenState extends State<BalanceScreen> {
             clipper: BottomCurveClipper(),
             child: Container(height: 400, color: const Color(0xFFE13D56)),
           ),
-          FutureBuilder<List<Map<String, dynamic>>>(
-            future: _transactions,
+          FutureBuilder<Map<String, dynamic>>(
+            future: _dataFuture,
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text("No transactions found"));
-              }
+              if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
-              final transactions = snapshot.data!;
+              final totalSavings = snapshot.data!['totalSavings'] as int;
+              final transactions = snapshot.data!['transactions'] as List;
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 120),
-                child: Column(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 35),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 60, left: 20, right: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                transitionDuration: const Duration(milliseconds: 800),
+                                pageBuilder: (_, __, ___) => const TargetScreen(),
+                                transitionsBuilder: (_, animation, __, child) {
+                                  final rotate = Tween(begin: -pi, end: 0.0).animate(animation);
+                                  return AnimatedBuilder(
+                                    animation: rotate,
+                                    builder: (_, __) {
+                                      final isUnder = rotate.value < pi / 2;
+                                      return Transform(
+                                        alignment: Alignment.center,
+                                        transform: Matrix4.identity()
+                                          ..setEntry(3, 2, 0.001)
+                                          ..rotateY(rotate.value),
+                                        child: isUnder ? child : Container(color: Colors.transparent),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: 63,
+                            height: 33,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF342E37),
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x3F000000),
+                                  blurRadius: 4,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Flip',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        Center(
+                          child: Column(
                             children: [
+                              Text(
+                                'Current Saving :',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                currency.format(totalSavings),
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 34,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 75),
                               GestureDetector(
                                 onTap: () {
                                   Navigator.push(
                                     context,
                                     PageRouteBuilder(
-                                      transitionDuration:
-                                          const Duration(milliseconds: 800),
-                                      pageBuilder: (context, animation,
-                                              secondaryAnimation) =>
-                                          const TargetScreen(),
-                                      transitionsBuilder: (context, animation,
-                                          secondaryAnimation, child) {
-                                        final rotate =
-                                            Tween(begin: -pi, end: 0.0)
-                                                .animate(animation);
-
-                                        return AnimatedBuilder(
-                                          animation: rotate,
-                                          builder: (context, _) {
-                                            final isUnder =
-                                                rotate.value < pi / 2;
-
-                                            return Transform(
-                                              alignment: Alignment.center,
-                                              transform: Matrix4.identity()
-                                                ..setEntry(
-                                                    3, 2, 0.001) 
-                                                ..rotateY(rotate.value),
-                                              child: isUnder
-                                                  ? child
-                                                  : Container(
-                                                      color:
-                                                          Colors.transparent),
-                                            );
-                                          },
+                                      transitionDuration: const Duration(milliseconds: 300),
+                                      pageBuilder: (_, __, ___) => const InputExpensesScreen(),
+                                      transitionsBuilder: (context, animation, __, child) {
+                                        final tween = Tween(begin: const Offset(1.0, 0.0), end: Offset.zero)
+                                            .chain(CurveTween(curve: Curves.easeInOut));
+                                        return SlideTransition(
+                                          position: animation.drive(tween),
+                                          child: child,
                                         );
                                       },
                                     ),
                                   );
                                 },
                                 child: Container(
-                                  width: 63,
-                                  height: 33,
+                                  width: 72,
+                                  height: 38,
                                   decoration: ShapeDecoration(
-                                    color: const Color(0xFF342E37),
+                                    color: Colors.white,
                                     shape: RoundedRectangleBorder(
+                                      side: const BorderSide(width: 5, color: Color(0xFFE13D56)),
                                       borderRadius: BorderRadius.circular(30),
                                     ),
                                     shadows: const [
@@ -164,160 +236,99 @@ class _BalanceScreenState extends State<BalanceScreen> {
                                     ],
                                   ),
                                   child: Center(
-                                    child: Text(
-                                      'Flip',
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                                    child: Image.asset(
+                                      'assets/icons/minus.png',
+                                      width: 26,
+                                      height: 26,
+                                      color: const Color(0xFF342E37),
                                     ),
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 40),
-
-                          Text(
-                            'Current Saving :',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            currency.format(totalSavings),
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 34,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            transitionDuration:
-                                const Duration(milliseconds: 300),
-                            pageBuilder:
-                                (context, animation, secondaryAnimation) =>
-                                    const InputExpensesScreen(),
-                            transitionsBuilder: (context, animation,
-                                secondaryAnimation, child) {
-                              const begin = Offset(1.0, 0.0);
-                              const end = Offset.zero;
-                              const curve = Curves.easeInOut;
-
-                              final tween = Tween(begin: begin, end: end)
-                                  .chain(CurveTween(curve: curve));
-                              final offsetAnimation = animation.drive(tween);
-
-                              return SlideTransition(
-                                position: offsetAnimation,
-                                child: child,
-                              );
-                            },
-                          ),
-                        );
-                      },
-
-                      child: Container(
-                        width: 72,
-                        height: 38,
-                        decoration: ShapeDecoration(
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            side: const BorderSide(width: 5, color: Color(0xFFE13D56)),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          shadows: const [
-                            BoxShadow(
-                              color: Color(0x3F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                            )
-                          ],
                         ),
-                        child: Center(
-                          child: Image.asset(
-                            'assets/icons/minus.png',
-                            width: 26,
-                            height: 26,
-                            color: Color(0xFF342E37),
-                          ),
-                        ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 25),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 10, bottom: 20),
+                      child: ListView.builder(
+                        itemCount: transactions.length,
+                        itemBuilder: (context, index) {
+                          final tx = transactions[index];
+                          final isExpense = tx['type'] == 'expenses';
+                          final date = (tx['timestamp'] as Timestamp).toDate();
+                          final formattedDate = DateFormat('d MMMM yyyy', 'id_ID').format(date);
 
-                    // Box transaksi
-                    ...transactions.map((tx) {
-                      final isExpense = tx['type'] == 'expense';
-                      final date = (tx['timestamp'] as Timestamp).toDate();
-                      final formattedDate = DateFormat('d MMMM yyyy', 'id_ID').format(date);
-
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        child: Container(
-                          width: 401,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFECFEFD),
-                            borderRadius: BorderRadius.circular(30),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x3F000000),
-                                blurRadius: 4,
-                                offset: Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          return Stack(
                             children: [
-                              Text(
-                                tx['description'] ?? "-",
-                                style: GoogleFonts.poppins(
-                                  color: const Color(0xFF342E37),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400,
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                child: Container(
+                                  width: 401,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFECFEFD),
+                                    borderRadius: BorderRadius.circular(30),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Color(0x3F000000),
+                                        blurRadius: 4,
+                                        offset: Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        tx['description'] ?? "-",
+                                        style: GoogleFonts.poppins(
+                                          color: const Color(0xFF342E37),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        currency.format(tx['amount']),
+                                        style: GoogleFonts.poppins(
+                                          color: isExpense ? const Color(0xFFB20000) : const Color(0xFF342E37),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        formattedDate,
+                                        style: GoogleFonts.poppins(
+                                          color: const Color(0xFF342E37),
+                                          fontSize: 12,
+                                          fontStyle: FontStyle.italic,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                currency.format(tx['amount']),
-                                style: GoogleFonts.poppins(
-                                  color: isExpense ? Color(0xFFB20000) : Color(0xFF342E37),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                              Positioned(
+                                top: 18,
+                                right: 28,
+                                child: GestureDetector(
+                                  onTap: () => _confirmDelete(tx['id'], tx['type']),
+                                  child: const Icon(Icons.delete_outline, size: 24, color: Colors.redAccent),
                                 ),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                formattedDate,
-                                style: GoogleFonts.poppins(
-                                  color: const Color(0xFF342E37),
-                                  fontSize: 12,
-                                  fontStyle: FontStyle.italic,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
+                              )
                             ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ],
-                ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           ),
@@ -329,7 +340,6 @@ class _BalanceScreenState extends State<BalanceScreen> {
 
 class BottomCurveClipper extends CustomClipper<Path> {
   final double curveHeight;
-
   BottomCurveClipper({this.curveHeight = 120});
 
   @override

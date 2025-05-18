@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'balance_screen.dart';
 import '../home-screen/home_screen.dart';
 import '../auth-screen/profile_screen.dart';
 
@@ -73,6 +74,31 @@ class _InputExpensesScreenState extends State<InputExpensesScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Expense saved successfully")),
     );
+
+    Future.delayed(const Duration(milliseconds: 300), () {
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 300),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const BalanceScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(-1.0, 0.0); 
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+
+            final tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            final offsetAnimation = animation.drive(tween);
+
+            return SlideTransition(
+              position: offsetAnimation,
+              child: child,
+            );
+          },
+        ),
+      );
+    });
   }
 
   @override
@@ -132,7 +158,6 @@ class _InputExpensesScreenState extends State<InputExpensesScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
