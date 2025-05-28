@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../home-screen/home_screen.dart';
+import '../../home_screen.dart';
 import '../auth-screen/profile_screen.dart';
 
 class InputSavingsScreen extends StatefulWidget {

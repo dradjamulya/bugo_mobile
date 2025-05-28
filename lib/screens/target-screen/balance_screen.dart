@@ -73,32 +73,6 @@ class _BalanceScreenState extends State<BalanceScreen> {
     return {'totalSavings': total, 'transactions': transactions};
   }
 
-  void _confirmDelete(String id, String collection) async {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Delete'),
-        content: const Text('Are you sure want to delete this transaction?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              await _firestore.collection(collection).doc(id).delete();
-              Navigator.pop(context);
-              setState(() {
-                _dataFuture = fetchTransactionsWithTotal();
-              });
-            },
-            child: const Text('Yes'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
@@ -314,14 +288,6 @@ class _BalanceScreenState extends State<BalanceScreen> {
                                   ),
                                 ),
                               ),
-                              Positioned(
-                                top: 18,
-                                right: 28,
-                                child: GestureDetector(
-                                  onTap: () => _confirmDelete(tx['id'], tx['type']),
-                                  child: const Icon(Icons.delete_outline, size: 24, color: Colors.redAccent),
-                                ),
-                              )
                             ],
                           );
                         },

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_screen.dart';
-import '../home-screen/home_screen.dart';
+import '../../home_screen.dart';
 import '../target-screen/target_screen.dart';
 import 'change_password_screen.dart';
 

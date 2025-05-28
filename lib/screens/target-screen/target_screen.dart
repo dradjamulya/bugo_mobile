@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'balance_screen.dart';
 import 'input_screen.dart';
-import '../home-screen/home_screen.dart';
+import '../../home_screen.dart';
 import '../auth-screen/profile_screen.dart';
 import 'package:intl/intl.dart';
 import 'dart:math';

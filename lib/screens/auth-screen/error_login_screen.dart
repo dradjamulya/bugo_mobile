@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../home-screen/home_screen.dart';
+import '../../home_screen.dart';
 import 'register_screen.dart';
 
 class ErrorLoginScreen extends StatefulWidget {

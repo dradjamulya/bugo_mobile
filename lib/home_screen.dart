@@ -3,9 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'saving_screen.dart';
-import '../target-screen/target_screen.dart';
-import '../auth-screen/profile_screen.dart';
+import 'screens/target-screen/target_screen.dart';
+import 'screens/auth-screen/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -137,15 +136,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 25),
-
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => SavingScreen()));
-                },
-                child: Image.asset('assets/icons/wallet-pinned.png',
-                    width: 51, height: 51),
-              ),
 
               Stack(
                 clipBehavior: Clip.none,
