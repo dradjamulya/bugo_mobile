@@ -137,6 +137,12 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 25),
 
+              Image.asset(
+                'assets/icons/wallet-pinned.png',
+                width: 51,
+                height: 51,
+              ),
+
               Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'error_register_screen.dart';
 import 'login_screen.dart';
 import '/services/auth_service.dart';
@@ -29,48 +30,148 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  Future<void> _registerUser() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final username = usernameController.text.trim();
+    final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+
+    if (password != confirmPassword) {
+      Navigator.of(context).pop();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const ErrorRegisterScreen(),
+        ),
+      );
+      return;
+    }
+
+    try {
+      final msg = await authService.registerWithEmail(
+        email,
+        password,
+        username,
+        name,
+      );
+      Navigator.of(context).pop();
+      if (!mounted) return;
+
+      if (msg == null) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const LoginScreen(),
+          ),
+          (route) => false,
+        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Registration Succeed. Please Login.')));
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ErrorRegisterScreen(),
+          ),
+        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(msg)));
+      }
+    } catch (e) {
+      Navigator.of(context).pop();
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const ErrorRegisterScreen(),
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("An unexpected error occurred: ${e.toString()}")));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double responsiveMultiplier = screenWidth < 600 ? screenWidth : 600;
+
     return Scaffold(
-      body: SizedBox(
-        width: double.infinity,
-        height: double.infinity,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Image.asset(
-                'assets/login-screen-bg-mob-bugo.png',
-                fit: BoxFit.cover,
+      body: SafeArea(
+        child: SizedBox(
+          width: double.infinity,
+          height: double.infinity,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  'assets/login-screen-bg-mob-bugo.png',
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-            Center(
-              child: SingleChildScrollView(
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.09),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 220),
+                    SizedBox(height: screenHeight * 0.28),
                     Text(
-                      "Hi! Let's be Buddies!",
+                      "Hi! Let's be buddies!",
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
                         color: const Color(0xFF342E37),
-                        fontSize: 18,
+                        fontSize: responsiveMultiplier * 0.039,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    buildInputField("NAME", nameController),
-                    const SizedBox(height: 24),
-                    buildInputField("EMAIL", emailController),
-                    const SizedBox(height: 24),
-                    buildInputField("USERNAME", usernameController),
-                    const SizedBox(height: 24),
-                    buildInputField("PASSWORD", passwordController, isPassword: true),
-                    const SizedBox(height: 24),
-                    buildInputField("CONFIRM PASSWORD", confirmPasswordController, isPassword: true),
-                    const SizedBox(height: 24),
+                    SizedBox(height: screenHeight * 0.016),
+                    _buildInputField("NAME", nameController,
+                        screenWidth: screenWidth,
+                        screenHeight: screenHeight,
+                        responsiveMultiplier: responsiveMultiplier,
+                        keyboardType: TextInputType.name),
+                    SizedBox(height: screenHeight * 0.013),
+                    _buildInputField("EMAIL", emailController,
+                        screenWidth: screenWidth,
+                        screenHeight: screenHeight,
+                        responsiveMultiplier: responsiveMultiplier,
+                        keyboardType: TextInputType.emailAddress),
+                    SizedBox(height: screenHeight * 0.013),
+                    _buildInputField("USERNAME", usernameController,
+                        screenWidth: screenWidth,
+                        screenHeight: screenHeight,
+                        responsiveMultiplier: responsiveMultiplier,
+                        keyboardType: TextInputType.text),
+                    SizedBox(height: screenHeight * 0.013),
+                    _buildInputField("PASSWORD", passwordController,
+                        isPassword: true,
+                        screenWidth: screenWidth,
+                        screenHeight: screenHeight,
+                        responsiveMultiplier: responsiveMultiplier,
+                        keyboardType: TextInputType.visiblePassword),
+                    SizedBox(height: screenHeight * 0.013),
+                    _buildInputField(
+                        "CONFIRM PASSWORD", confirmPasswordController,
+                        isPassword: true,
+                        screenWidth: screenWidth,
+                        screenHeight: screenHeight,
+                        responsiveMultiplier: responsiveMultiplier,
+                        keyboardType: TextInputType.visiblePassword),
+                    SizedBox(
+                        height: screenHeight *
+                            0.025), // Spasi utama yang mendorong elemen bawah
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(
+                        Navigator.pushReplacement(
+                          // Ganti ke LoginScreen dan hapus RegisterScreen dari stack
                           context,
                           MaterialPageRoute(
                             builder: (context) => const LoginScreen(),
@@ -78,21 +179,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         );
                       },
                       child: RichText(
+                        textAlign: TextAlign.center,
                         text: TextSpan(
                           text: "Already have an account, Bud? ",
                           style: GoogleFonts.poppins(
                             color: const Color(0xFF342E37),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            decoration: TextDecoration.underline,
+                            fontSize: responsiveMultiplier * 0.031,
+                            fontWeight: FontWeight.w500,
                           ),
                           children: [
                             TextSpan(
                               text: 'Login',
                               style: GoogleFonts.poppins(
-                                color: const Color(0xFF9D8DF1),
-                                fontSize: 16,
+                                fontSize: responsiveMultiplier * 0.031,
                                 fontWeight: FontWeight.w600,
+                                color: const Color(0xFF9D8DF1),
                                 decoration: TextDecoration.underline,
                               ),
                             ),
@@ -100,98 +201,96 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 34),
+                    SizedBox(height: screenHeight * 0.022),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFFFED66),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(
+                              responsiveMultiplier * 0.085),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: screenWidth * 0.18,
+                            vertical: screenHeight * 0.016),
+                        minimumSize:
+                            Size(screenWidth * 0.48, screenHeight * 0.052),
                       ),
-                      onPressed: () async {
-                        final name = nameController.text.trim();
-                        final email = emailController.text.trim();
-                        final username = usernameController.text.trim();
-                        final password = passwordController.text.trim();
-                        final confirmPassword = confirmPasswordController.text.trim();
-
-                        if (password != confirmPassword) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ErrorRegisterScreen(),
-                            ),
-                          );
-                          return;
-                        }
-
-                        final msg = await authService.registerWithEmail(
-                          email,
-                          password,
-                          username,
-                          name,
-                        );
-
-                        if (msg == null) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                          );
-                        } 
-                      },
+                      onPressed: _registerUser,
                       child: Text(
                         'REGISTER',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           color: const Color(0xFF342E37),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                          fontSize: responsiveMultiplier * 0.031,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
+                    SizedBox(height: screenHeight * 0.035),
                   ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget buildInputField(String hint, TextEditingController controller, {bool isPassword = false}) {
+  Widget _buildInputField(
+    String hint,
+    TextEditingController controller, {
+    bool isPassword = false,
+    required double screenWidth,
+    required double screenHeight,
+    required double responsiveMultiplier,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 40),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      height: screenHeight * 0.058,
+      margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.015),
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.045,
+      ),
       decoration: ShapeDecoration(
         color: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(responsiveMultiplier * 0.085),
         ),
-        shadows: [
-          const BoxShadow(
-            color: Color(0x3F000000),
-            blurRadius: 4,
-            offset: Offset(0, 4),
+        shadows: const [
+          BoxShadow(
+            color: Color(0x2A000000),
+            blurRadius: 2,
+            offset: Offset(0, 1),
             spreadRadius: 0,
           )
         ],
       ),
-      child: TextField(
-        controller: controller,
-        obscureText: isPassword,
-        textAlign: TextAlign.center,
-        style: GoogleFonts.poppins(
-          color: const Color(0xFF342E37),
-          fontSize: 12,
-          fontWeight: FontWeight.w400,
-        ),
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          hintText: hint,
+      child: Center(
+        child: TextFormField(
+          controller: controller,
+          obscureText: isPassword,
+          keyboardType: keyboardType,
+          textAlign: TextAlign.center,
+          textAlignVertical: TextAlignVertical.center,
+          cursorColor: const Color(0xFF342E37),
+          style: GoogleFonts.poppins(
+            color: const Color(0xFF342E37),
+            fontSize: responsiveMultiplier * 0.032,
+            fontWeight: FontWeight.w500,
+          ),
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            hintText: hint.toUpperCase(),
+            hintStyle: GoogleFonts.poppins(
+              color: const Color(0xFF342E37).withOpacity(0.35),
+              fontSize: responsiveMultiplier * 0.032,
+              fontWeight: FontWeight.w400,
+              letterSpacing: 0.5,
+            ),
+            isDense: true,
+            contentPadding: EdgeInsets.zero,
+          ),
         ),
       ),
     );

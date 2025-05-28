@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'login_screen.dart';
 import '/services/auth_service.dart';
 
@@ -28,51 +29,137 @@ class _ErrorRegisterScreenState extends State<ErrorRegisterScreen> {
     super.dispose();
   }
 
+  Future<void> _attemptRegisterAgain() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final username = usernameController.text.trim();
+    final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+
+    if (password != confirmPassword) {
+      Navigator.of(context).pop();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text("Passwords do not match. Please try again.")),
+        );
+      }
+      return;
+    }
+
+    try {
+      final msg = await authService.registerWithEmail(
+        email,
+        password,
+        username,
+        name,
+      );
+
+      Navigator.of(context).pop();
+      if (!mounted) return;
+
+      if (msg == null) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const LoginScreen(),
+          ),
+          (route) => false,
+        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Registration Succeed. Please Login.')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg)),
+        );
+      }
+    } catch (e) {
+      Navigator.of(context).pop();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text("An unexpected error occurred: ${e.toString()}")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double responsiveMultiplier = screenWidth < 600 ? screenWidth : 600;
+
     return Scaffold(
-      body: SizedBox(
-        width: double.infinity,
-        height: double.infinity,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Image.asset(
-                'assets/login-screen-bg-mob-bugo.png',
-                fit: BoxFit.cover,
+      body: SafeArea(
+        child: SizedBox(
+          width: double.infinity,
+          height: double.infinity,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  'assets/login-screen-bg-mob-bugo.png',
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-            Center(
-              child: SingleChildScrollView(
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.09),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 220),
+                    SizedBox(height: screenHeight * 0.30),
                     Text(
                       "Make sure you filled them correctly!",
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
                         color: const Color(0xFFE13D56),
-                        fontSize: 18,
+                        fontSize: responsiveMultiplier * 0.039,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    buildInputField("NAME", nameController),
-                    const SizedBox(height: 24),
-                    buildInputField("EMAIL", emailController),
-                    const SizedBox(height: 24),
-                    buildInputField("USERNAME", usernameController),
-                    const SizedBox(height: 24),
-                    buildInputField("PASSWORD", passwordController,
-                        isPassword: true),
-                    const SizedBox(height: 24),
-                    buildInputField(
+                    SizedBox(height: screenHeight * 0.016),
+                    _buildInputField("NAME", nameController,
+                        screenWidth: screenWidth,
+                        screenHeight: screenHeight,
+                        responsiveMultiplier: responsiveMultiplier,
+                        keyboardType: TextInputType.name),
+                    SizedBox(height: screenHeight * 0.013),
+                    _buildInputField("EMAIL", emailController,
+                        screenWidth: screenWidth,
+                        screenHeight: screenHeight,
+                        responsiveMultiplier: responsiveMultiplier,
+                        keyboardType: TextInputType.emailAddress),
+                    SizedBox(height: screenHeight * 0.013),
+                    _buildInputField("USERNAME", usernameController,
+                        screenWidth: screenWidth,
+                        screenHeight: screenHeight,
+                        responsiveMultiplier: responsiveMultiplier,
+                        keyboardType: TextInputType.text),
+                    SizedBox(height: screenHeight * 0.013),
+                    _buildInputField("PASSWORD", passwordController,
+                        isPassword: true,
+                        screenWidth: screenWidth,
+                        screenHeight: screenHeight,
+                        responsiveMultiplier: responsiveMultiplier,
+                        keyboardType: TextInputType.visiblePassword),
+                    SizedBox(height: screenHeight * 0.013),
+                    _buildInputField(
                         "CONFIRM PASSWORD", confirmPasswordController,
-                        isPassword: true),
-                    const SizedBox(height: 24),
+                        isPassword: true,
+                        screenWidth: screenWidth,
+                        screenHeight: screenHeight,
+                        responsiveMultiplier: responsiveMultiplier,
+                        keyboardType: TextInputType.visiblePassword),
+                    SizedBox(height: screenHeight * 0.025),
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(
+                        Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const LoginScreen(),
@@ -80,21 +167,21 @@ class _ErrorRegisterScreenState extends State<ErrorRegisterScreen> {
                         );
                       },
                       child: RichText(
+                        textAlign: TextAlign.center,
                         text: TextSpan(
                           text: "Already have an account, Bud? ",
                           style: GoogleFonts.poppins(
                             color: const Color(0xFF342E37),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            decoration: TextDecoration.underline,
+                            fontSize: responsiveMultiplier * 0.030,
+                            fontWeight: FontWeight.w500,
                           ),
                           children: [
                             TextSpan(
                               text: 'Login',
                               style: GoogleFonts.poppins(
-                                color: const Color(0xFF9D8DF1),
-                                fontSize: 16,
+                                fontSize: responsiveMultiplier * 0.030,
                                 fontWeight: FontWeight.w600,
+                                color: const Color(0xFF9D8DF1),
                                 decoration: TextDecoration.underline,
                               ),
                             ),
@@ -102,107 +189,96 @@ class _ErrorRegisterScreenState extends State<ErrorRegisterScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 34),
+                    SizedBox(height: screenHeight * 0.022),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFFFED66),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(
+                              responsiveMultiplier * 0.085),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 50, vertical: 10),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: screenWidth * 0.18,
+                            vertical: screenHeight * 0.015),
+                        minimumSize:
+                            Size(screenWidth * 0.45, screenHeight * 0.050),
                       ),
-                      onPressed: () async {
-                        final name = nameController.text.trim();
-                        final email = emailController.text.trim();
-                        final username = usernameController.text.trim();
-                        final password = passwordController.text.trim();
-                        final confirmPassword =
-                            confirmPasswordController.text.trim();
-
-                        if (password != confirmPassword) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text("Passwords do not match")),
-                          );
-                          return;
-                        }
-
-                        final msg = await authService.registerWithEmail(
-                          email,
-                          password,
-                          username,
-                          name,
-                        );
-
-                        if (msg == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Registration Succeed')),
-                          );
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(msg)),
-                          );
-                        }
-                      },
+                      onPressed: _attemptRegisterAgain,
                       child: Text(
                         'REGISTER',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           color: const Color(0xFF342E37),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                          fontSize: responsiveMultiplier * 0.031,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
+                    SizedBox(height: screenHeight * 0.035),
                   ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget buildInputField(String hint, TextEditingController controller,
-      {bool isPassword = false}) {
+  Widget _buildInputField(
+    String hint,
+    TextEditingController controller, {
+    bool isPassword = false,
+    required double screenWidth,
+    required double screenHeight,
+    required double responsiveMultiplier,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 40),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      height: screenHeight * 0.055,
+      margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.01),
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.04,
+      ),
       decoration: ShapeDecoration(
         color: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(responsiveMultiplier * 0.085),
         ),
-        shadows: [
-          const BoxShadow(
-            color: Color(0x3F000000),
-            blurRadius: 4,
-            offset: Offset(0, 4),
+        shadows: const [
+          BoxShadow(
+            color: Color(0x2A000000),
+            blurRadius: 2,
+            offset: Offset(0, 1),
             spreadRadius: 0,
           )
         ],
       ),
-      child: TextField(
-        controller: controller,
-        obscureText: isPassword,
-        textAlign: TextAlign.center,
-        style: GoogleFonts.poppins(
-          color: const Color(0xFF342E37),
-          fontSize: 12,
-          fontWeight: FontWeight.w400,
-        ),
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          hintText: hint,
+      child: Center(
+        child: TextFormField(
+          controller: controller,
+          obscureText: isPassword,
+          keyboardType: keyboardType,
+          textAlign: TextAlign.center,
+          textAlignVertical: TextAlignVertical.center,
+          cursorColor: const Color(0xFF342E37),
+          style: GoogleFonts.poppins(
+            color: const Color(0xFF342E37),
+            fontSize: responsiveMultiplier * 0.031,
+            fontWeight: FontWeight.w500,
+          ),
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            hintText: hint.toUpperCase(),
+            hintStyle: GoogleFonts.poppins(
+              color: const Color(0xFF342E37).withOpacity(0.35),
+              fontSize: responsiveMultiplier * 0.031,
+              fontWeight: FontWeight.w400,
+              letterSpacing: 0.5,
+            ),
+            isDense: true,
+            contentPadding: EdgeInsets.zero,
+          ),
         ),
       ),
     );
