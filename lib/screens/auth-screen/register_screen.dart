@@ -105,133 +105,131 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final double responsiveMultiplier = screenWidth < 600 ? screenWidth : 600;
 
     return Scaffold(
-      body: SafeArea(
-        child: SizedBox(
-          width: double.infinity,
-          height: double.infinity,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Image.asset(
-                  'assets/login-screen-bg-mob-bugo.png',
-                  fit: BoxFit.cover,
-                ),
+      body: SizedBox(
+        width: double.infinity,
+        height: double.infinity,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                'assets/login-screen-bg-mob-bugo.png',
+                fit: BoxFit.cover,
               ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.09),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(height: screenHeight * 0.28),
-                    Text(
-                      "Hi! Let's be buddies!",
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.09),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(height: screenHeight * 0.28),
+                  Text(
+                    "Hi! Let's be buddies!",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      color: const Color(0xFF342E37),
+                      fontSize: responsiveMultiplier * 0.039,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.016),
+                  _buildInputField("NAME", nameController,
+                      screenWidth: screenWidth,
+                      screenHeight: screenHeight,
+                      responsiveMultiplier: responsiveMultiplier,
+                      keyboardType: TextInputType.name),
+                  SizedBox(height: screenHeight * 0.013),
+                  _buildInputField("EMAIL", emailController,
+                      screenWidth: screenWidth,
+                      screenHeight: screenHeight,
+                      responsiveMultiplier: responsiveMultiplier,
+                      keyboardType: TextInputType.emailAddress),
+                  SizedBox(height: screenHeight * 0.013),
+                  _buildInputField("USERNAME", usernameController,
+                      screenWidth: screenWidth,
+                      screenHeight: screenHeight,
+                      responsiveMultiplier: responsiveMultiplier,
+                      keyboardType: TextInputType.text),
+                  SizedBox(height: screenHeight * 0.013),
+                  _buildInputField("PASSWORD", passwordController,
+                      isPassword: true,
+                      screenWidth: screenWidth,
+                      screenHeight: screenHeight,
+                      responsiveMultiplier: responsiveMultiplier,
+                      keyboardType: TextInputType.visiblePassword),
+                  SizedBox(height: screenHeight * 0.013),
+                  _buildInputField(
+                      "CONFIRM PASSWORD", confirmPasswordController,
+                      isPassword: true,
+                      screenWidth: screenWidth,
+                      screenHeight: screenHeight,
+                      responsiveMultiplier: responsiveMultiplier,
+                      keyboardType: TextInputType.visiblePassword),
+                  SizedBox(
+                      height: screenHeight *
+                          0.025), // Spasi utama yang mendorong elemen bawah
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        // Ganti ke LoginScreen dan hapus RegisterScreen dari stack
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                      );
+                    },
+                    child: RichText(
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xFF342E37),
-                        fontSize: responsiveMultiplier * 0.039,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: screenHeight * 0.016),
-                    _buildInputField("NAME", nameController,
-                        screenWidth: screenWidth,
-                        screenHeight: screenHeight,
-                        responsiveMultiplier: responsiveMultiplier,
-                        keyboardType: TextInputType.name),
-                    SizedBox(height: screenHeight * 0.013),
-                    _buildInputField("EMAIL", emailController,
-                        screenWidth: screenWidth,
-                        screenHeight: screenHeight,
-                        responsiveMultiplier: responsiveMultiplier,
-                        keyboardType: TextInputType.emailAddress),
-                    SizedBox(height: screenHeight * 0.013),
-                    _buildInputField("USERNAME", usernameController,
-                        screenWidth: screenWidth,
-                        screenHeight: screenHeight,
-                        responsiveMultiplier: responsiveMultiplier,
-                        keyboardType: TextInputType.text),
-                    SizedBox(height: screenHeight * 0.013),
-                    _buildInputField("PASSWORD", passwordController,
-                        isPassword: true,
-                        screenWidth: screenWidth,
-                        screenHeight: screenHeight,
-                        responsiveMultiplier: responsiveMultiplier,
-                        keyboardType: TextInputType.visiblePassword),
-                    SizedBox(height: screenHeight * 0.013),
-                    _buildInputField(
-                        "CONFIRM PASSWORD", confirmPasswordController,
-                        isPassword: true,
-                        screenWidth: screenWidth,
-                        screenHeight: screenHeight,
-                        responsiveMultiplier: responsiveMultiplier,
-                        keyboardType: TextInputType.visiblePassword),
-                    SizedBox(
-                        height: screenHeight *
-                            0.025), // Spasi utama yang mendorong elemen bawah
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          // Ganti ke LoginScreen dan hapus RegisterScreen dari stack
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
-                          ),
-                        );
-                      },
-                      child: RichText(
-                        textAlign: TextAlign.center,
-                        text: TextSpan(
-                          text: "Already have an account, Bud? ",
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF342E37),
-                            fontSize: responsiveMultiplier * 0.031,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: 'Login',
-                              style: GoogleFonts.poppins(
-                                fontSize: responsiveMultiplier * 0.031,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFF9D8DF1),
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: screenHeight * 0.022),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFFED66),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              responsiveMultiplier * 0.085),
-                        ),
-                        padding: EdgeInsets.symmetric(
-                            horizontal: screenWidth * 0.18,
-                            vertical: screenHeight * 0.016),
-                        minimumSize:
-                            Size(screenWidth * 0.48, screenHeight * 0.052),
-                      ),
-                      onPressed: _registerUser,
-                      child: Text(
-                        'REGISTER',
-                        textAlign: TextAlign.center,
+                      text: TextSpan(
+                        text: "Already have an account, Bud? ",
                         style: GoogleFonts.poppins(
                           color: const Color(0xFF342E37),
                           fontSize: responsiveMultiplier * 0.031,
                           fontWeight: FontWeight.w500,
                         ),
+                        children: [
+                          TextSpan(
+                            text: 'Login',
+                            style: GoogleFonts.poppins(
+                              fontSize: responsiveMultiplier * 0.031,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF9D8DF1),
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    SizedBox(height: screenHeight * 0.035),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: screenHeight * 0.022),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFFED66),
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(responsiveMultiplier * 0.085),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.18,
+                          vertical: screenHeight * 0.016),
+                      minimumSize:
+                          Size(screenWidth * 0.48, screenHeight * 0.052),
+                    ),
+                    onPressed: _registerUser,
+                    child: Text(
+                      'REGISTER',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF342E37),
+                        fontSize: responsiveMultiplier * 0.031,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.035),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

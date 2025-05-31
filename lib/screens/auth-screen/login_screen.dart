@@ -71,119 +71,115 @@ class _LoginScreenState extends State<LoginScreen> {
     final double responsiveMultiplier = screenWidth < 600 ? screenWidth : 600;
 
     return Scaffold(
-      body: SafeArea(
-        child: SizedBox(
-          width: double.infinity,
-          height: double.infinity,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Image.asset(
-                  'assets/login-screen-bg-mob-bugo.png',
-                  fit: BoxFit.cover,
-                ),
+      body: SizedBox(
+        width: double.infinity,
+        height: double.infinity,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                'assets/login-screen-bg-mob-bugo.png',
+                fit: BoxFit.cover,
               ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.09),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(height: screenHeight * 0.30),
-                    Text(
-                      "It's nice to have you back, Bud!",
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.09),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(height: screenHeight * 0.30),
+                  Text(
+                    "It's nice to have you back, Bud!",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      color: const Color(0xFF342E37),
+                      fontSize: responsiveMultiplier * 0.039,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.025),
+                  _buildTextField(
+                    controller: _emailController,
+                    hintText: 'EMAIL',
+                    isPassword: false,
+                    screenWidth: screenWidth,
+                    screenHeight: screenHeight,
+                    responsiveMultiplier: responsiveMultiplier,
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  SizedBox(height: screenHeight * 0.018),
+                  _buildTextField(
+                    controller: _passwordController,
+                    hintText: 'PASSWORD',
+                    isPassword: true,
+                    screenWidth: screenWidth,
+                    screenHeight: screenHeight,
+                    responsiveMultiplier: responsiveMultiplier,
+                    keyboardType: TextInputType.visiblePassword,
+                  ),
+                  SizedBox(height: screenHeight * 0.03),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterScreen(),
+                        ),
+                      );
+                    },
+                    child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        text: "Don’t have an account, Bud? ",
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFF342E37),
+                          fontSize: responsiveMultiplier * 0.030,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'Register',
+                            style: GoogleFonts.poppins(
+                              fontSize: responsiveMultiplier * 0.030,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF9D8DF1),
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.030),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFFED66),
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(responsiveMultiplier * 0.085),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.18,
+                          vertical: screenHeight * 0.015),
+                      minimumSize:
+                          Size(screenWidth * 0.045, screenHeight * 0.050),
+                    ),
+                    onPressed: _login,
+                    child: Text(
+                      'LOGIN',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
                         color: const Color(0xFF342E37),
-                        fontSize: responsiveMultiplier * 0.039,
-                        fontWeight: FontWeight.w600,
+                        fontSize: responsiveMultiplier * 0.031,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                    SizedBox(height: screenHeight * 0.025),
-                    _buildTextField(
-                      controller: _emailController,
-                      hintText: 'EMAIL',
-                      isPassword: false,
-                      screenWidth: screenWidth,
-                      screenHeight: screenHeight,
-                      responsiveMultiplier: responsiveMultiplier,
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    SizedBox(height: screenHeight * 0.018),
-                    _buildTextField(
-                      controller: _passwordController,
-                      hintText: 'PASSWORD',
-                      isPassword: true,
-                      screenWidth: screenWidth,
-                      screenHeight: screenHeight,
-                      responsiveMultiplier: responsiveMultiplier,
-                      keyboardType: TextInputType.visiblePassword,
-                    ),
-                    SizedBox(height: screenHeight * 0.03),
-                    
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const RegisterScreen(),
-                          ),
-                        );
-                      },
-                      child: RichText(
-                        textAlign: TextAlign.center,
-                        text: TextSpan(
-                          text: "Don’t have an account, Bud? ",
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF342E37),
-                            fontSize: responsiveMultiplier * 0.030,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: 'Register',
-                              style: GoogleFonts.poppins(
-                                fontSize: responsiveMultiplier * 0.030,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFF9D8DF1),
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: screenHeight * 0.030),
-                    
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFFED66),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              responsiveMultiplier * 0.085),
-                        ),
-                        padding: EdgeInsets.symmetric(
-                            horizontal: screenWidth * 0.18,
-                            vertical: screenHeight * 0.015),
-                        minimumSize:
-                            Size(screenWidth * 0.045, screenHeight * 0.050),
-                      ),
-                      onPressed: _login,
-                      child: Text(
-                        'LOGIN',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                          color: const Color(0xFF342E37),
-                          fontSize: responsiveMultiplier * 0.031,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: screenHeight * 0.035),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: screenHeight * 0.035),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
