@@ -5,7 +5,7 @@ import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'balance_screen.dart';
 import '../../home_screen.dart';
-import '../auth-screen/profile_screen.dart';
+import '../../profile_screen.dart';
 
 class InputExpensesScreen extends StatefulWidget {
   const InputExpensesScreen({super.key});

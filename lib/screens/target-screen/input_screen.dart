@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'input_savings_screen.dart';
 import 'input_target_screen_step1.dart';
 import '../../home_screen.dart';
-import '../auth-screen/profile_screen.dart';
+import '../../profile_screen.dart';
 
 class InputScreen extends StatelessWidget {
   const InputScreen({super.key});

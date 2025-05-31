@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'login_screen.dart';
-import '../../home_screen.dart';
-import '../target-screen/target_screen.dart';
-import 'change_password_screen.dart';
+import 'screens/auth-screen/login_screen.dart';
+import 'home_screen.dart';
+import 'screens/target-screen/target_screen.dart';
+import 'screens/auth-screen/change_password_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

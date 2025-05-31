@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'error_register_screen.dart';
 import 'login_screen.dart';
 import '/services/auth_service.dart';
@@ -121,7 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(height: screenHeight * 0.28),
+                  SizedBox(height: screenHeight * 0.32),
                   Text(
                     "Hi! Let's be buddies!",
                     textAlign: TextAlign.center,
@@ -137,26 +136,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       screenHeight: screenHeight,
                       responsiveMultiplier: responsiveMultiplier,
                       keyboardType: TextInputType.name),
-                  SizedBox(height: screenHeight * 0.013),
+                  SizedBox(height: screenHeight * 0.016),
                   _buildInputField("EMAIL", emailController,
                       screenWidth: screenWidth,
                       screenHeight: screenHeight,
                       responsiveMultiplier: responsiveMultiplier,
                       keyboardType: TextInputType.emailAddress),
-                  SizedBox(height: screenHeight * 0.013),
+                  SizedBox(height: screenHeight * 0.016),
                   _buildInputField("USERNAME", usernameController,
                       screenWidth: screenWidth,
                       screenHeight: screenHeight,
                       responsiveMultiplier: responsiveMultiplier,
                       keyboardType: TextInputType.text),
-                  SizedBox(height: screenHeight * 0.013),
+                  SizedBox(height: screenHeight * 0.016),
                   _buildInputField("PASSWORD", passwordController,
                       isPassword: true,
                       screenWidth: screenWidth,
                       screenHeight: screenHeight,
                       responsiveMultiplier: responsiveMultiplier,
                       keyboardType: TextInputType.visiblePassword),
-                  SizedBox(height: screenHeight * 0.013),
+                  SizedBox(height: screenHeight * 0.016),
                   _buildInputField(
                       "CONFIRM PASSWORD", confirmPasswordController,
                       isPassword: true,
@@ -166,11 +165,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       keyboardType: TextInputType.visiblePassword),
                   SizedBox(
                       height: screenHeight *
-                          0.025), // Spasi utama yang mendorong elemen bawah
+                          0.025),
                   GestureDetector(
                     onTap: () {
                       Navigator.pushReplacement(
-                        // Ganti ke LoginScreen dan hapus RegisterScreen dari stack
                         context,
                         MaterialPageRoute(
                           builder: (context) => const LoginScreen(),
@@ -183,14 +181,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         text: "Already have an account, Bud? ",
                         style: GoogleFonts.poppins(
                           color: const Color(0xFF342E37),
-                          fontSize: responsiveMultiplier * 0.031,
+                          fontSize: responsiveMultiplier * 0.035,
                           fontWeight: FontWeight.w500,
                         ),
                         children: [
                           TextSpan(
                             text: 'Login',
                             style: GoogleFonts.poppins(
-                              fontSize: responsiveMultiplier * 0.031,
+                              fontSize: responsiveMultiplier * 0.035,
                               fontWeight: FontWeight.w600,
                               color: const Color(0xFF9D8DF1),
                               decoration: TextDecoration.underline,
@@ -258,8 +256,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         shadows: const [
           BoxShadow(
             color: Color(0x2A000000),
-            blurRadius: 2,
-            offset: Offset(0, 1),
+            blurRadius: 4,
+            offset: Offset(0, 4),
             spreadRadius: 0,
           )
         ],

@@ -87,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(height: screenHeight * 0.30),
+                  SizedBox(height: screenHeight * 0.32),
                   Text(
                     "It's nice to have you back, Bud!",
                     textAlign: TextAlign.center,
@@ -133,14 +133,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         text: "Don’t have an account, Bud? ",
                         style: GoogleFonts.poppins(
                           color: const Color(0xFF342E37),
-                          fontSize: responsiveMultiplier * 0.030,
+                          fontSize: responsiveMultiplier * 0.035,
                           fontWeight: FontWeight.w600,
                         ),
                         children: [
                           TextSpan(
                             text: 'Register',
                             style: GoogleFonts.poppins(
-                              fontSize: responsiveMultiplier * 0.030,
+                              fontSize: responsiveMultiplier * 0.035,
                               fontWeight: FontWeight.w600,
                               color: const Color(0xFF9D8DF1),
                               decoration: TextDecoration.underline,
@@ -208,8 +208,8 @@ class _LoginScreenState extends State<LoginScreen> {
         shadows: const [
           BoxShadow(
             color: Color(0x2A000000),
-            blurRadius: 2,
-            offset: Offset(0, 1),
+            blurRadius: 4,
+            offset: Offset(0, 4),
             spreadRadius: 0,
           )
         ],
