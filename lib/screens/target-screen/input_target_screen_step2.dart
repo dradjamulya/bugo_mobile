@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../profile_screen.dart';
+import '../profile-screen/profile_screen.dart';
 import '../../home_screen.dart';
 import 'input_target_screen_step1.dart';
 

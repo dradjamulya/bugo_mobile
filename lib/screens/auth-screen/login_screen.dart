@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'register_screen.dart';
-import 'error_login_screen.dart';
 import '../../home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -13,10 +12,22 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  bool _hasError = false;
+  String _errorMessage = "It's nice to have you back, Bud!";
 
   Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) {
+      setState(() {
+        _hasError = true;
+        _errorMessage = "Make sure you filled them correctly!";
+      });
+      return;
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -34,26 +45,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
       Navigator.of(context).pop();
+      setState(() {
+        _hasError = false;
+        _errorMessage = "It's nice to have you back, Bud!";
+      });
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
-    } on FirebaseAuthException catch (e) {
+    } catch (_) {
       Navigator.of(context).pop();
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const ErrorLoginScreen(),
-        ),
-      );
-    } catch (e) {
-      Navigator.of(context).pop();
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const ErrorLoginScreen(),
-        ),
-      );
+      setState(() {
+        _hasError = true;
+        _errorMessage = "Make sure you filled them correctly!";
+      });
     }
   }
 
@@ -66,181 +71,252 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = MediaQuery.of(context).size.height;
-    final double responsiveMultiplier = screenWidth < 600 ? screenWidth : 600;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final scale = screenWidth / 390;
 
     return Scaffold(
-      body: SizedBox(
+      body: Container(
         width: double.infinity,
         height: double.infinity,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Image.asset(
-                'assets/login-screen-bg-mob-bugo.png',
-                fit: BoxFit.cover,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.09),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(height: screenHeight * 0.32),
-                  Text(
-                    "It's nice to have you back, Bud!",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xFF342E37),
-                      fontSize: responsiveMultiplier * 0.039,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.025),
-                  _buildTextField(
-                    controller: _emailController,
-                    hintText: 'EMAIL',
-                    isPassword: false,
-                    screenWidth: screenWidth,
-                    screenHeight: screenHeight,
-                    responsiveMultiplier: responsiveMultiplier,
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  SizedBox(height: screenHeight * 0.018),
-                  _buildTextField(
-                    controller: _passwordController,
-                    hintText: 'PASSWORD',
-                    isPassword: true,
-                    screenWidth: screenWidth,
-                    screenHeight: screenHeight,
-                    responsiveMultiplier: responsiveMultiplier,
-                    keyboardType: TextInputType.visiblePassword,
-                  ),
-                  SizedBox(height: screenHeight * 0.03),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const RegisterScreen(),
-                        ),
-                      );
-                    },
-                    child: RichText(
-                      textAlign: TextAlign.center,
-                      text: TextSpan(
-                        text: "Don’t have an account, Bud? ",
-                        style: GoogleFonts.poppins(
-                          color: const Color(0xFF342E37),
-                          fontSize: responsiveMultiplier * 0.035,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: 'Register',
-                            style: GoogleFonts.poppins(
-                              fontSize: responsiveMultiplier * 0.035,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF9D8DF1),
-                              decoration: TextDecoration.underline,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/login-screen-bg-mob-bugo.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.09),
+                  child: Form(
+                    key: _formKey,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(height: screenHeight * 0.1),
+                        SizedBox(
+                          height: screenHeight * 0.06,
+                          child: Center(
+                            child: Text(
+                              _errorMessage,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                color: _hasError
+                                    ? const Color(0xFFE13D56)
+                                    : const Color(0xFF342E37),
+                                fontSize: 16 * scale,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                        CustomTextField(
+                          controller: _emailController,
+                          hintText: 'EMAIL',
+                          isPassword: false,
+                          scale: scale,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Email cannot be empty';
+                            }
+                            final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+                            if (!regex.hasMatch(value)) {
+                              return 'Enter a valid email';
+                            }
+                            return null;
+                          },
+                        ),
+                        CustomTextField(
+                          controller: _passwordController,
+                          hintText: 'PASSWORD',
+                          isPassword: true,
+                          scale: scale,
+                          keyboardType: TextInputType.visiblePassword,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Password cannot be empty';
+                            }
+                            if (value.length < 6) {
+                              return 'Password must be at least 6 characters';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: screenHeight * 0.01),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const RegisterScreen()),
+                            );
+                          },
+                          child: RichText(
+                            textAlign: TextAlign.center,
+                            text: TextSpan(
+                              text: "Don’t have an account, Bud? ",
+                              style: GoogleFonts.poppins(
+                                color: const Color(0xFF342E37),
+                                fontSize: 14 * scale,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: 'Register',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14 * scale,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF9D8DF1),
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: screenHeight * 0.015),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFFED66),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30 * scale),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: screenWidth * 0.18,
+                              vertical: screenHeight * 0.016,
+                            ),
+                            minimumSize:
+                                Size(screenWidth * 0.48, screenHeight * 0.052),
+                          ),
+                          onPressed: _login,
+                          child: Text(
+                            'LOGIN',
+                            style: GoogleFonts.poppins(
+                              color: const Color(0xFF342E37),
+                              fontSize: 14 * scale,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: screenHeight * 0.035),
+                      ],
                     ),
                   ),
-                  SizedBox(height: screenHeight * 0.030),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFED66),
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(responsiveMultiplier * 0.085),
-                      ),
-                      padding: EdgeInsets.symmetric(
-                          horizontal: screenWidth * 0.18,
-                          vertical: screenHeight * 0.015),
-                      minimumSize:
-                          Size(screenWidth * 0.045, screenHeight * 0.050),
-                    ),
-                    onPressed: _login,
-                    child: Text(
-                      'LOGIN',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xFF342E37),
-                        fontSize: responsiveMultiplier * 0.031,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.035),
-                ],
+                ),
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
   }
+}
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hintText,
-    required bool isPassword,
-    required double screenWidth,
-    required double screenHeight,
-    required double responsiveMultiplier,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return Container(
-      height: screenHeight * 0.058,
-      margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.015),
-      padding: EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.045,
-      ),
-      decoration: ShapeDecoration(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(responsiveMultiplier * 0.085),
-        ),
-        shadows: const [
-          BoxShadow(
-            color: Color(0x2A000000),
-            blurRadius: 4,
-            offset: Offset(0, 4),
-            spreadRadius: 0,
-          )
-        ],
-      ),
-      child: Center(
-        child: TextFormField(
-          controller: controller,
-          obscureText: isPassword,
-          keyboardType: keyboardType,
-          textAlign: TextAlign.center,
-          textAlignVertical: TextAlignVertical.center,
-          cursorColor: const Color(0xFF342E37),
-          style: GoogleFonts.poppins(
-            color: const Color(0xFF342E37),
-            fontSize: responsiveMultiplier * 0.032,
-            fontWeight: FontWeight.w500,
+class CustomTextField extends StatefulWidget {
+  final TextEditingController controller;
+  final String hintText;
+  final bool isPassword;
+  final double scale;
+  final TextInputType keyboardType;
+  final String? Function(String?) validator;
+
+  const CustomTextField({
+    super.key,
+    required this.controller,
+    required this.hintText,
+    required this.isPassword,
+    required this.scale,
+    required this.keyboardType,
+    required this.validator,
+  });
+
+  @override
+  State<CustomTextField> createState() => _CustomTextFieldState();
+}
+
+class _CustomTextFieldState extends State<CustomTextField> {
+  String? errorText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x3F000000),
+                blurRadius: 4,
+                offset: Offset(0, 4),
+                spreadRadius: 0,
+              ),
+            ],
+            borderRadius: BorderRadius.circular(30 * widget.scale),
           ),
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            hintText: hintText.toUpperCase(),
-            hintStyle: GoogleFonts.poppins(
-              color: const Color(0xFF342E37).withOpacity(0.35),
-              fontSize: responsiveMultiplier * 0.032,
-              fontWeight: FontWeight.w400,
-              letterSpacing: 0.5,
+          child: TextFormField(
+            controller: widget.controller,
+            obscureText: widget.isPassword,
+            keyboardType: widget.keyboardType,
+            textAlign: TextAlign.center,
+            cursorColor: const Color(0xFF342E37),
+            style: GoogleFonts.poppins(
+              color: const Color(0xFF342E37),
+              fontSize: 13 * widget.scale,
+              fontWeight: FontWeight.w500,
             ),
-            isDense: true,
-            contentPadding: EdgeInsets.zero,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              hintText: widget.hintText.toUpperCase(),
+              hintStyle: GoogleFonts.poppins(
+                color: const Color(0xFF342E37).withOpacity(0.35),
+                fontSize: 13 * widget.scale,
+                fontWeight: FontWeight.w400,
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30 * widget.scale),
+                borderSide: BorderSide.none,
+              ),
+              errorText: null, // disable default error text
+            ),
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            onChanged: (value) {
+              setState(() {
+                errorText = widget.validator(value);
+              });
+            },
+            onSaved: (value) {
+              setState(() {
+                errorText = widget.validator(value);
+              });
+            },
           ),
         ),
-      ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0),
+            child: Align(
+              alignment: Alignment.center,
+              child: Text(
+                errorText!,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  color: const Color(0xFFE13D56),
+                  fontSize: 11 * widget.scale,
+                ),
+              ),
+            ),
+          ),
+        const SizedBox(height: 15),
+      ],
     );
   }
 }

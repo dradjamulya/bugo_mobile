@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'screens/target-screen/target_screen.dart';
-import 'profile_screen.dart';
+import 'widgets/bottom_nav_bar.dart'; 
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,12 +14,21 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final double baseWidth = 390;
+  late double scale;
+  late Size screenSize;
+
   String username = '';
   Map<String, dynamic>? favoriteTarget;
+  int totalEmergencyFund = 0;
 
   @override
   void initState() {
     super.initState();
+    fetchUserData();
+  }
+
+  void fetchUserData() {
     fetchUsername();
     fetchFavoriteTarget();
     fetchTotalEmergencyFund();
@@ -30,9 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (uid != null) {
       final doc =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      setState(() {
-        username = doc['username'];
-      });
+      setState(() => username = doc['username']);
     }
   }
 
@@ -48,351 +55,251 @@ class _HomeScreenState extends State<HomeScreen> {
         .get();
 
     if (targetQuery.docs.isNotEmpty) {
-      final targetDoc = targetQuery.docs.first;
-      final targetId = targetDoc.id;
-      final data = targetDoc.data();
+      final data = targetQuery.docs.first.data();
+      final targetId = targetQuery.docs.first.id;
 
-      final savingsQuery = await FirebaseFirestore.instance
+      final savings = await FirebaseFirestore.instance
           .collection('savings')
           .where('user_id', isEqualTo: uid)
           .where('target_id', isEqualTo: targetId)
           .get();
 
-      final expensesQuery = await FirebaseFirestore.instance
+      final expenses = await FirebaseFirestore.instance
           .collection('expenses')
           .where('user_id', isEqualTo: uid)
           .where('target_id', isEqualTo: targetId)
           .get();
 
-      int totalSaved = 0;
-      for (var doc in savingsQuery.docs) {
-        totalSaved += (doc['amount'] as int?) ?? 0;
-      }
-
-      int totalExpenses = 0;
-      for (var doc in expensesQuery.docs) {
-        totalExpenses += (doc['amount'] as int?) ?? 0;
-      }
+      final totalSaved = savings.docs
+          .fold(0, (sum, doc) => sum + (doc['amount'] as int? ?? 0));
+      final totalExpenses = expenses.docs
+          .fold(0, (sum, doc) => sum + (doc['amount'] as int? ?? 0));
 
       setState(() {
         favoriteTarget = {
           'name': data['target_name'],
-          'saved': totalSaved - totalExpenses, // dikurangi expenses
+          'saved': totalSaved - totalExpenses,
           'total': data['target_amount'],
         };
       });
     }
   }
 
-  int totalEmergencyFund = 0;
-
   Future<void> fetchTotalEmergencyFund() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
-    final targetsQuery = await FirebaseFirestore.instance
+    final targets = await FirebaseFirestore.instance
         .collection('targets')
         .where('user_id', isEqualTo: uid)
         .get();
 
-    int total = 0;
-    for (var doc in targetsQuery.docs) {
-      total += (doc['emergency_fund'] as int?) ?? 0;
-    }
-
-    setState(() {
-      totalEmergencyFund = total;
-    });
+    final total = targets.docs
+        .fold(0, (sum, doc) => sum + (doc['emergency_fund'] as int? ?? 0));
+    setState(() => totalEmergencyFund = total);
   }
 
   @override
   Widget build(BuildContext context) {
+    screenSize = MediaQuery.of(context).size;
+    scale = screenSize.width / baseWidth;
+
     return Scaffold(
       body: Stack(
         children: [
           Container(color: const Color(0xFFBCFDF7)),
-          Positioned.fill(
+          _buildTopCurveBackground(),
+          SafeArea(child: _buildMainContent()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopCurveBackground() {
+    return Positioned.fill(
+      child: Column(
+        children: [
+          ClipPath(
+            clipper: TopCurveClipper(),
+            child: Container(
+              height: 300 * scale,
+              color: const Color(0xFFE13D56),
+            ),
+          ),
+          Expanded(child: Container(color: const Color(0xFFBCFDF7))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMainContent() {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.06),
             child: Column(
               children: [
-                ClipPath(
-                  clipper: TopCurveClipper(),
-                  child: Container(height: 300, color: const Color(0xFFE13D56)),
+                SizedBox(height: screenSize.height * 0.08),
+                Text(
+                  'Hey, $username!',
+                  style: GoogleFonts.poppins(
+                    fontSize: 28 * scale,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
                 ),
-                Expanded(child: Container(color: const Color(0xFFBCFDF7))),
+                SizedBox(height: screenSize.height * 0.07),
+                Image.asset('assets/icons/wallet-pinned.png',
+                    width: 51, height: 51),
+                SizedBox(height: screenSize.height * 0.03),
+                _buildFavoriteTargetCard(),
+                SizedBox(height: screenSize.height * 0.06),
+                _buildEmergencyFundCard(),
+                SizedBox(height: screenSize.height * 0.04),
+                _buildQuickAccessIcons(),
+                SizedBox(height: screenSize.height * 0.04),
               ],
             ),
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const SizedBox(height: 55),
-              Text(
-                'Hey, $username!',
-                style: GoogleFonts.poppins(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  height: 1.25,
-                ),
-              ),
-              const SizedBox(height: 25),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10, left: 30, right: 30),
+          child: BottomNavBar(activePage: 'home'),
+        ),
+      ],
+    );
+  }
 
-              Image.asset(
-                'assets/icons/wallet-pinned.png',
-                width: 51,
-                height: 51,
-              ),
-
-              Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  Container(
-                    width: 345,
-                    height: 195,
-                    decoration: ShapeDecoration(
-                      color: const Color(0xFFECFEFD),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      shadows: [
-                        BoxShadow(
-                          color: const Color(0x3F000000),
-                          blurRadius: 4,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: favoriteTarget == null
-                          ? Text(
-                              'No Favorite Target',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w400,
-                                color: const Color(0xFF342E37),
-                              ),
-                            )
-                          : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Current Saving for',
-                                  style: GoogleFonts.poppins(
-                                    color: const Color(0xFF342E37),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                Text(
-                                  '${favoriteTarget!['name']} :',
-                                  style: GoogleFonts.poppins(
-                                    color: const Color(0xFF342E37),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Rp${NumberFormat("#,###", "id_ID").format(favoriteTarget!['saved'])}',
-                                  style: GoogleFonts.poppins(
-                                    color: const Color(0xFF342E37),
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Rp${NumberFormat("#,###", "id_ID").format(favoriteTarget!['total'])}',
-                                  style: GoogleFonts.poppins(
-                                    color: const Color(0xFF9D8DF1),
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: -35,
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            transitionDuration:
-                                const Duration(milliseconds: 300),
-                            pageBuilder: (_, __, ___) => const TargetScreen(),
-                            transitionsBuilder: (_, animation, __, child) {
-                              final tween = Tween(
-                                      begin: const Offset(1, 0),
-                                      end: Offset.zero)
-                                  .chain(CurveTween(curve: Curves.easeInOut));
-                              return SlideTransition(
-                                  position: animation.drive(tween),
-                                  child: child);
-                            },
-                          ),
-                        ).then((_) {
-                          fetchFavoriteTarget();
-                        });
-                      },
-                      child: Container(
-                        width: 70,
-                        height: 70,
-                        decoration: ShapeDecoration(
-                          color: const Color(0xFFE13D56),
-                          shape: OvalBorder(
-                            side: BorderSide(
-                                width: 7, color: const Color(0xFFECFEFD)),
-                          ),
-                          shadows: [
-                            BoxShadow(
-                              color: const Color(0x3F000000),
-                              blurRadius: 4,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Image.asset(
-                            'assets/icons/plus.png',
-                            width: 30,
-                            height: 30,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // Emergency Fund Box
-              Container(
-                width: 345,
-                height: 133,
-                decoration: ShapeDecoration(
-                  color: const Color(0xFFECFEFD),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30)),
-                  shadows: [
-                    BoxShadow(
-                      color: const Color(0x3F000000),
-                      blurRadius: 4,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Column(
+  Widget _buildFavoriteTargetCard() {
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: double.infinity,
+          height: 195 * scale,
+          decoration: BoxDecoration(
+            color: const Color(0xFFECFEFD),
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: const [
+              BoxShadow(
+                  color: Color(0x3F000000),
+                  blurRadius: 4,
+                  offset: Offset(0, 4)),
+            ],
+          ),
+          child: Center(
+            child: favoriteTarget == null
+                ? Text('No Favorite Target',
+                    style: GoogleFonts.poppins(fontSize: 16 * scale))
+                : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      Text('Current Saving for',
+                          style: GoogleFonts.poppins(fontSize: 14 * scale)),
+                      Text('${favoriteTarget!['name']} :',
+                          style: GoogleFonts.poppins(
+                              fontSize: 14 * scale,
+                              fontWeight: FontWeight.w500)),
+                      SizedBox(height: 8 * scale),
                       Text(
-                        'Emergency Fund:',
+                        'Rp${NumberFormat("#,###", "id_ID").format(favoriteTarget!['saved'])}',
                         style: GoogleFonts.poppins(
-                          color: const Color(0xFF342E37),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                        ),
+                            fontSize: 30 * scale, fontWeight: FontWeight.w700),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4 * scale),
                       Text(
-                        'Rp${NumberFormat("#,###", "id_ID").format(totalEmergencyFund)}',
+                        'Rp${NumberFormat("#,###", "id_ID").format(favoriteTarget!['total'])}',
                         style: GoogleFonts.poppins(
-                          color: const Color(0xFF342E37),
-                          fontSize: 28,
-                          fontWeight: FontWeight.w600,
-                        ),
+                            fontSize: 20 * scale,
+                            color: const Color(0xFF9D8DF1)),
                       ),
                     ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 5),
-
-              // Icon Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  iconButtonBox('assets/icons/notification.png', 46),
-                  iconButtonBox('assets/icons/eye.png', 54),
-                  iconButtonBox('assets/icons/link.png', 63),
+          ),
+        ),
+        Positioned(
+          bottom: -35,
+          child: GestureDetector(
+            onTap: () async {
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const TargetScreen()));
+              fetchFavoriteTarget();
+            },
+            child: Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE13D56),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFECFEFD), width: 7),
+                boxShadow: const [
+                  BoxShadow(
+                      color: Color(0x3F000000),
+                      blurRadius: 4,
+                      offset: Offset(0, 4)),
                 ],
               ),
-
-              Container(
-                margin: const EdgeInsets.only(
-                    bottom: 10, left: 20, right: 20, top: 10),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE13D56),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Image.asset('assets/icons/arrow.png',
-                        width: 33, height: 33, color: const Color(0xFF342E37)),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (_, __, ___) => const TargetScreen(),
-                            transitionDuration: Duration.zero,
-                            reverseTransitionDuration: Duration.zero,
-                          ),
-                        );
-                      },
-                      child: Image.asset('assets/icons/wallet.png',
-                          width: 35, height: 35),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (_, __, ___) => const ProfileScreen(),
-                            transitionDuration: Duration.zero,
-                            reverseTransitionDuration: Duration.zero,
-                          ),
-                        );
-                      },
-                      child: Image.asset('assets/icons/person.png',
-                          width: 35, height: 35),
-                    ),
-                  ],
-                ),
+              child: Center(
+                child: Image.asset('assets/icons/plus.png',
+                    width: 30, height: 30, color: Colors.white),
               ),
-            ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmergencyFundCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFECFEFD),
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text('Emergency Fund:',
+              style: GoogleFonts.poppins(fontSize: 14 * scale)),
+          SizedBox(height: 4 * scale),
+          Text(
+            'Rp${NumberFormat("#,###", "id_ID").format(totalEmergencyFund)}',
+            style: GoogleFonts.poppins(
+                fontSize: 28 * scale, fontWeight: FontWeight.w600),
           ),
         ],
       ),
     );
   }
 
-  Widget iconButtonBox(String path, double size) {
+  Widget _buildQuickAccessIcons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _iconBox('assets/icons/notification.png', 46),
+        _iconBox('assets/icons/eye.png', 54),
+        _iconBox('assets/icons/link.png', 63),
+      ],
+    );
+  }
+
+  Widget _iconBox(String path, double size) {
     return Container(
-      width: 100,
-      height: 96,
-      decoration: ShapeDecoration(
+      width: 100 * scale,
+      height: 96 * scale,
+      decoration: BoxDecoration(
         color: const Color(0xFFECFEFD),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        shadows: [
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0x3F000000),
-            blurRadius: 4,
-            offset: const Offset(0, 4),
-          ),
+              color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 4)),
         ],
       ),
       child: Center(
@@ -408,11 +315,7 @@ class TopCurveClipper extends CustomClipper<Path> {
     Path path = Path();
     path.lineTo(0, size.height - 100);
     path.quadraticBezierTo(
-      size.width / 2,
-      size.height - 185,
-      size.width,
-      size.height - 100,
-    );
+        size.width / 2, size.height - 185, size.width, size.height - 100);
     path.lineTo(size.width, 0);
     path.close();
     return path;
