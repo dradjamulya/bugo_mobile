@@ -140,9 +140,11 @@ class _TargetScreenState extends State<TargetScreen> {
   }
 
   void _loadData() {
-    setState(() {
-      _targetDataFuture = _targetService.fetchData();
-    });
+    if (mounted) {
+      setState(() {
+        _targetDataFuture = _targetService.fetchData();
+      });
+    }
   }
 
   Future<void> _toggleFavorite(String targetId, bool isFav) async {
@@ -169,38 +171,39 @@ class _TargetScreenState extends State<TargetScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Container(color: const Color(0xFFBCFDF7)),
-          ClipPath(
-            clipper: BottomCurveClipper(),
-            child: Container(height: 380.h, color: const Color(0xFFE13D56)),
-          ),
-          SafeArea(
-            child: FutureBuilder<TargetScreenData>(
-              future: _targetDataFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                      child: CircularProgressIndicator(color: Colors.white));
-                }
-                if (snapshot.hasError) {
-                  return Center(
-                      child: Text('Error: ${snapshot.error}',
-                          style: const TextStyle(color: Colors.white)));
-                }
-                if (!snapshot.hasData || snapshot.data!.targets.isEmpty) {
-                  return _buildEmptyState();
-                }
+    return Stack(
+      children: [
+        Container(color: const Color(0xFFBCFDF7)),
+        ClipPath(
+          clipper: BottomCurveClipper(),
+          child: Container(height: 380.h, color: const Color(0xFFE13D56)),
+        ),
+        SafeArea(
+          child: FutureBuilder<TargetScreenData>(
+            future: _targetDataFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                    child: CircularProgressIndicator(color: Colors.white));
+              }
+              if (snapshot.hasError) {
+                return Center(
+                    child: Text('Error: ${snapshot.error}',
+                        style: const TextStyle(color: Colors.white)));
+              }
+              if (!snapshot.hasData || snapshot.data!.targets.isEmpty) {
+                return _buildEmptyState();
+              }
 
-                final data = snapshot.data!;
-                return Column(
-                  children: [
-                    _buildTopSection(data),
-                    Expanded(
+              final data = snapshot.data!;
+              return Column(
+                children: [
+                  _buildTopSection(data),
+                  SizedBox(height: 9.h),
+                  Expanded(
+                    child: ClipRRect(
                       child: ListView.builder(
-                        padding: EdgeInsets.only(top: 10.h, bottom: 20.h),
+                        padding: EdgeInsets.only(top: 1.h, bottom: 10.h),
                         itemCount: data.targets.length,
                         itemBuilder: (context, index) {
                           final target = data.targets[index];
@@ -211,13 +214,13 @@ class _TargetScreenState extends State<TargetScreen> {
                         },
                       ),
                     ),
-                  ],
-                );
-              },
-            ),
+                  ),
+                ],
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -370,79 +373,72 @@ class _TargetScreenState extends State<TargetScreen> {
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
-            decoration: BoxDecoration(
-              color: const Color(0xFFECFEFD),
-              borderRadius:
-                  BorderRadius.circular(30.r), 
-              boxShadow: const [
-                BoxShadow(
-                    color: Color(0x3F000000),
-                    blurRadius: 4,
-                    offset: Offset(0, 4))
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(target.name,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
+        decoration: BoxDecoration(
+          color: const Color(0xFFECFEFD),
+          borderRadius: BorderRadius.circular(25.r),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 4))
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    target.name,
                     style: GoogleFonts.poppins(
                         fontSize: 15.sp,
-                        fontWeight: FontWeight
-                            .w400, 
-                        color: const Color(0xFF342E37))),
-                SizedBox(height: 4.h),
-                RichText(
-                  text: TextSpan(
-                    style: DefaultTextStyle.of(context).style,
-                    children: [
-                      TextSpan(
-                          text: '${currency.format(target.savedAmount)}\n',
-                          style: TextStyle(
-                              fontSize: 15.sp,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF342E37))),
-                      TextSpan(
-                          text: '/ ${currency.format(target.targetAmount)}',
-                          style: TextStyle(
-                              fontSize: 15.sp, 
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF9D8DF1))),
-                    ],
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF342E37)),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
-                ),
-                SizedBox(height: 5.h),
-                Text('Completion Plan : ${target.deadline}',
+                  SizedBox(height: 4.h),
+                  Text(
+                    currency.format(target.savedAmount),
                     style: GoogleFonts.poppins(
-                        fontSize: 11.sp,
-                        fontStyle: FontStyle.italic,
-                        color: const Color(0xFF342E37))),
-              ],
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF342E37)),
+                  ),
+                  Text(
+                    '/ ${currency.format(target.targetAmount)}',
+                    style: GoogleFonts.poppins(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF9D8DF1)),
+                  ),
+                  SizedBox(height: 5.h),
+                  Text('Completion Plan : ${target.deadline}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 11.sp,
+                          fontStyle: FontStyle.italic,
+                          color: const Color(0xFF342E37))),
+                ],
+              ),
             ),
-          ),
-          Positioned(
-            right: 15.w, // Posisi disesuaikan
-            top: 0,
-            bottom: 0,
-            child: GestureDetector(
+            SizedBox(width: 10.w),
+            GestureDetector(
               onTap: () => _toggleFavorite(target.id, target.isFavorite),
               child: Icon(
                 target.isFavorite
                     ? Icons.star_rounded
                     : Icons.star_border_rounded,
-                size: 80.r, 
+                size: 70.r,
                 color: target.isFavorite
                     ? const Color(0xFFFFED66)
                     : Colors.grey[400],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

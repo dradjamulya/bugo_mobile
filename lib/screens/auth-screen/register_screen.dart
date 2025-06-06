@@ -175,7 +175,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ? "Please confirm your password"
                               : null,
                         ),
-                        SizedBox(height: 10.h),
                         _buildLoginLink(),
                         SizedBox(height: 15.h),
                         _buildRegisterButton(),

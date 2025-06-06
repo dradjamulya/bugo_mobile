@@ -91,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         SizedBox(height: 80.h),
                         SizedBox(
-                          height: 50.h,
+                          height: 75.h,
                           child: Center(
                             child: Text(
                               _errorMessage,
