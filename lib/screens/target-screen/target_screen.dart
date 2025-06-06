@@ -1,13 +1,126 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
-import 'dart:math';
 import 'balance_screen.dart';
 import 'input_screen.dart';
-import '../../widgets/bottom_nav_bar.dart';
-import 'edit_target_popup.dart'; 
+import 'edit_target_popup.dart';
+
+class TargetItem {
+  final String id;
+  final String name;
+  final int targetAmount;
+  final String deadline;
+  final int savedAmount;
+  final bool isFavorite;
+
+  TargetItem({
+    required this.id,
+    required this.name,
+    required this.targetAmount,
+    required this.deadline,
+    required this.savedAmount,
+    required this.isFavorite,
+  });
+}
+
+class TargetScreenData {
+  final int totalSavings;
+  final int totalTarget;
+  final List<TargetItem> targets;
+
+  TargetScreenData({
+    required this.totalSavings,
+    required this.totalTarget,
+    required this.targets,
+  });
+}
+
+class TargetService {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<TargetScreenData> fetchData() async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception("User not logged in");
+
+    final results = await Future.wait([
+      _firestore
+          .collection('targets')
+          .where('user_id', isEqualTo: user.uid)
+          .get(),
+      _firestore
+          .collection('savings')
+          .where('user_id', isEqualTo: user.uid)
+          .get(),
+      _firestore
+          .collection('expenses')
+          .where('user_id', isEqualTo: user.uid)
+          .get(),
+    ]);
+
+    final targetsSnapshot = results[0] as QuerySnapshot;
+    final savingsSnapshot = results[1] as QuerySnapshot;
+    final expensesSnapshot = results[2] as QuerySnapshot;
+
+    final validTargetIds = targetsSnapshot.docs.map((doc) => doc.id).toSet();
+
+    final Map<String, int> savingsPerTarget = {};
+    for (var doc in savingsSnapshot.docs) {
+      String targetId = doc['target_id'];
+      if (!validTargetIds.contains(targetId)) continue;
+      savingsPerTarget[targetId] = (savingsPerTarget[targetId] ?? 0) +
+          (doc['amount'] as num? ?? 0).toInt();
+    }
+
+    final Map<String, int> expensesPerTarget = {};
+    for (var doc in expensesSnapshot.docs) {
+      String targetId = doc['target_id'];
+      if (!validTargetIds.contains(targetId)) continue;
+      expensesPerTarget[targetId] = (expensesPerTarget[targetId] ?? 0) +
+          (doc['amount'] as num? ?? 0).toInt();
+    }
+
+    final List<TargetItem> targets = [];
+    int totalTargetAmount = 0;
+    int totalSavings = 0;
+
+    for (var doc in targetsSnapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final targetId = doc.id;
+      final int targetAmount = (data['target_amount'] as num? ?? 0).toInt();
+      final int saved = (savingsPerTarget[targetId] ?? 0) -
+          (expensesPerTarget[targetId] ?? 0);
+      final int validSaved = saved < 0 ? 0 : saved;
+
+      totalTargetAmount += targetAmount;
+      totalSavings += validSaved;
+
+      targets.add(TargetItem(
+        id: targetId,
+        name: data['target_name'] ?? 'No Name',
+        targetAmount: targetAmount,
+        deadline: data['target_deadline'] ?? 'No Deadline',
+        savedAmount: validSaved,
+        isFavorite: data['is_favorite'] ?? false,
+      ));
+    }
+
+    return TargetScreenData(
+      totalSavings: totalSavings,
+      totalTarget: totalTargetAmount,
+      targets: targets,
+    );
+  }
+
+  Future<void> toggleFavorite(String targetId, bool isCurrentlyFavorite) async {
+    await _firestore.collection('targets').doc(targetId).update({
+      'is_favorite': !isCurrentlyFavorite,
+    });
+  }
+}
 
 class TargetScreen extends StatefulWidget {
   const TargetScreen({Key? key}) : super(key: key);
@@ -17,315 +130,315 @@ class TargetScreen extends StatefulWidget {
 }
 
 class _TargetScreenState extends State<TargetScreen> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  late Future<Map<String, dynamic>> _targetData;
+  final TargetService _targetService = TargetService();
+  late Future<TargetScreenData> _targetDataFuture;
 
   @override
   void initState() {
     super.initState();
-    _targetData = fetchData();
+    _loadData();
   }
 
-  Future<Map<String, dynamic>> fetchData() async {
-    final user = _auth.currentUser;
-    if (user == null) return {};
-
-    final targetsSnapshot = await _firestore
-        .collection('targets')
-        .where('user_id', isEqualTo: user.uid)
-        .get();
-
-    final savingsSnapshot = await _firestore
-        .collection('savings')
-        .where('user_id', isEqualTo: user.uid)
-        .get();
-
-    final expensesSnapshot = await _firestore
-        .collection('expenses')
-        .where('user_id', isEqualTo: user.uid)
-        .get();
-
-    final validTargetIds = targetsSnapshot.docs.map((doc) => doc.id).toSet();
-
-    Map<String, int> savingsPerTarget = {};
-    Map<String, int> expensesPerTarget = {};
-    int totalTargetAmount = 0;
-
-    for (var doc in savingsSnapshot.docs) {
-      String targetId = doc['target_id'];
-      if (!validTargetIds.contains(targetId)) continue;
-      int amount = doc['amount'] ?? 0;
-      savingsPerTarget[targetId] = (savingsPerTarget[targetId] ?? 0) + amount;
-    }
-
-    for (var doc in expensesSnapshot.docs) {
-      String targetId = doc['target_id'];
-      if (!validTargetIds.contains(targetId)) continue;
-      int amount = doc['amount'] ?? 0;
-      expensesPerTarget[targetId] = (expensesPerTarget[targetId] ?? 0) + amount;
-    }
-
-    List<Map<String, dynamic>> targets = [];
-    int totalSavings = 0;
-
-    for (var doc in targetsSnapshot.docs) {
-      final data = doc.data();
-      final targetId = doc.id;
-      final int targetAmount = data['target_amount'] is int
-          ? data['target_amount']
-          : int.tryParse(data['target_amount'].toString()) ?? 0;
-
-      final int saved = (savingsPerTarget[targetId] ?? 0) - (expensesPerTarget[targetId] ?? 0);
-      final int validSaved = saved < 0 ? 0 : saved;
-
-      totalTargetAmount += targetAmount;
-      totalSavings += validSaved;
-
-      targets.add({
-        'id': targetId,
-        'target_name': data['target_name'],
-        'target_amount': targetAmount,
-        'target_deadline': data['target_deadline'],
-        'saved_amount': validSaved,
-        'is_favorite': data['is_favorite'] ?? false,
-      });
-    }
-
-    return {
-      'total_savings': totalSavings,
-      'total_target': totalTargetAmount,
-      'targets': targets,
-    };
-  }
-
-  Future<void> toggleFavorite(String targetId, bool isFav) async {
-    await _firestore.collection('targets').doc(targetId).update({
-      'is_favorite': !isFav,
-    });
-
-    final updatedData = await fetchData();
+  void _loadData() {
     setState(() {
-      _targetData = Future.value(updatedData);
+      _targetDataFuture = _targetService.fetchData();
     });
   }
 
-  Future<void> refreshTargets() async {
-    setState(() {
-      _targetData = fetchData();
-    });
+  Future<void> _toggleFavorite(String targetId, bool isFav) async {
+    await _targetService.toggleFavorite(targetId, isFav);
+    _loadData();
   }
 
-  void showEditTargetPopup(Map<String, dynamic> target) {
-  showGeneralDialog(
-    context: context,
-    barrierDismissible: true,
-    barrierLabel: 'Edit Target',
-    barrierColor: Colors.black.withOpacity(0.5),
-    transitionDuration: const Duration(milliseconds: 300),
-    pageBuilder: (_, __, ___) => EditTargetPopup(
-      targetId: target['id'],
-      initialName: target['target_name'],
-      initialAmount: target['target_amount'].toString(),
-      initialDeadline: target['target_deadline'],
-      onTargetUpdated: refreshTargets,
-    ),
-  );
-}
+  void _showEditTargetPopup(TargetItem target) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Edit Target',
+      barrierColor: Colors.black.withOpacity(0.5),
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (_, __, ___) => EditTargetPopup(
+        targetId: target.id,
+        initialName: target.name,
+        initialAmount: target.targetAmount.toString(),
+        initialDeadline: target.deadline,
+        onTargetUpdated: _loadData,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final scale = size.width / 390;
-
     return Scaffold(
       body: Stack(
         children: [
           Container(color: const Color(0xFFBCFDF7)),
           ClipPath(
             clipper: BottomCurveClipper(),
-            child: Container(height: 400 * scale, color: const Color(0xFFE13D56)),
+            child: Container(height: 380.h, color: const Color(0xFFE13D56)),
           ),
           SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(top: 30 * scale, left: 20 * scale, right: 20 * scale),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      buildFlipButton(scale),
-                      SizedBox(height: 12 * scale),
-                      Center(child: buildTargetStats(scale)),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: FutureBuilder<Map<String, dynamic>>(
-                    future: _targetData,
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) return const SizedBox.shrink();
-                      final targets = snapshot.data!['targets'] as List;
-                      return ListView.builder(
-                        padding: EdgeInsets.only(top: 20 * scale),
-                        itemCount: targets.length,
-                        itemBuilder: (context, index) =>
-                            GestureDetector(
-                              onTap: () => showEditTargetPopup(targets[index]),
-                              child: buildTargetCard(targets[index], scale),
-                            ),
-                      );
-                    },
-                  ),
-                ),
-              ],
+            child: FutureBuilder<TargetScreenData>(
+              future: _targetDataFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                      child: CircularProgressIndicator(color: Colors.white));
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                      child: Text('Error: ${snapshot.error}',
+                          style: const TextStyle(color: Colors.white)));
+                }
+                if (!snapshot.hasData || snapshot.data!.targets.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                final data = snapshot.data!;
+                return Column(
+                  children: [
+                    _buildTopSection(data),
+                    Expanded(
+                      child: ListView.builder(
+                        padding: EdgeInsets.only(top: 10.h, bottom: 20.h),
+                        itemCount: data.targets.length,
+                        itemBuilder: (context, index) {
+                          final target = data.targets[index];
+                          return GestureDetector(
+                            onTap: () => _showEditTargetPopup(target),
+                            child: _buildTargetCard(target),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
-          ),
-          const Positioned(
-            bottom: 34,
-            left: 30,
-            right: 30,
-            child: BottomNavBar(activePage: 'target'),
           ),
         ],
       ),
     );
   }
 
-  Widget buildFlipButton(double scale) {
+  Widget _buildTopSection(TargetScreenData data) {
+    return Padding(
+      padding: EdgeInsets.only(top: 30.h, left: 20.w, right: 20.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildFlipButton(),
+          SizedBox(height: 12.h),
+          Center(child: _buildTargetStats(data)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'No Target Found',
+            style: GoogleFonts.poppins(
+                fontSize: 22.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white),
+          ),
+          SizedBox(height: 10.h),
+          Text(
+            'Make your first target!',
+            style: GoogleFonts.poppins(fontSize: 16.sp, color: Colors.white70),
+          ),
+          SizedBox(height: 40.h),
+          GestureDetector(
+            onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const InputScreen()))
+                .then((_) => _loadData()),
+            child: Container(
+              width: 72.w,
+              height: 72.w,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(width: 5.w, color: const Color(0xFFE13D56)),
+                boxShadow: const [
+                  BoxShadow(
+                      color: Color(0x3F000000),
+                      blurRadius: 4,
+                      offset: Offset(0, 4))
+                ],
+              ),
+              child: Center(
+                child: Image.asset('assets/icons/plus.png',
+                    width: 26.w, height: 26.w, color: const Color(0xFF342E37)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFlipButton() {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 800),
           pageBuilder: (_, __, ___) => const BalanceScreen(),
-          transitionsBuilder: (_, animation, __, child) {
-            final rotate = Tween(begin: pi, end: 0.0).animate(animation);
-            return AnimatedBuilder(
-              animation: rotate,
-              builder: (_, __) {
-                final isUnder = rotate.value < pi / 2;
-                return Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.identity()
-                    ..setEntry(3, 2, 0.001)
-                    ..rotateY(rotate.value),
-                  child: isUnder ? child : Container(color: Colors.transparent),
-                );
-              },
-            );
-          },
         ),
       ),
       child: Container(
-        width: 63 * scale,
-        height: 33 * scale,
+        width: 63.w,
+        height: 33.h,
         decoration: BoxDecoration(
           color: const Color(0xFF342E37),
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: const [BoxShadow(color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 4))],
+          borderRadius: BorderRadius.circular(30.r),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 4))
+          ],
         ),
         child: Center(
           child: Text('Flip',
               style: GoogleFonts.poppins(
                   color: Colors.white,
-                  fontSize: 16 * scale,
+                  fontSize: 16.sp,
                   fontWeight: FontWeight.w700)),
         ),
       ),
     );
   }
 
-  Widget buildTargetStats(double scale) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _targetData,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return const SizedBox.shrink();
-        final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
-        final totalSavings = snapshot.data!['total_savings'] as int;
-        final totalTarget = snapshot.data!['total_target'] as int;
-
-        return Column(
-          children: [
-            Text('Current Target:',
-                style: GoogleFonts.poppins(color: Colors.white, fontSize: 16 * scale, fontWeight: FontWeight.w700)),
-            SizedBox(height: 15 * scale),
-            Text(currency.format(totalSavings),
-                style: GoogleFonts.poppins(color: Colors.white, fontSize: 34 * scale, fontWeight: FontWeight.w700)),
-            SizedBox(height: 12 * scale),
-            Text(currency.format(totalTarget),
-                style: GoogleFonts.poppins(color: const Color(0xFFFFED66), fontSize: 22 * scale, fontWeight: FontWeight.w400)),
-            SizedBox(height: 65 * scale),
-            GestureDetector(
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InputScreen())),
-              child: Container(
-                width: 72 * scale,
-                height: 38 * scale,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(width: 5 * scale, color: const Color(0xFFE13D56)),
-                  boxShadow: const [BoxShadow(color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 4))],
-                ),
-                child: Center(
-                  child: Image.asset('assets/icons/plus.png', width: 26 * scale, height: 26 * scale, color: const Color(0xFF342E37)),
-                ),
-              ),
+  Widget _buildTargetStats(TargetScreenData data) {
+    final currency =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    return Column(
+      children: [
+        Text('Current Target:',
+            style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w700)),
+        SizedBox(height: 13.h),
+        Text(currency.format(data.totalSavings),
+            style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 34.sp,
+                fontWeight: FontWeight.w700)),
+        SizedBox(height: 12.h),
+        Text(currency.format(data.totalTarget),
+            style: GoogleFonts.poppins(
+                color: const Color(0xFFFFED66),
+                fontSize: 22.sp,
+                fontWeight: FontWeight.w400)),
+        SizedBox(height: 42.h),
+        GestureDetector(
+          onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const InputScreen()))
+              .then((_) => _loadData()),
+          child: Container(
+            width: 72.w,
+            height: 38.h,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(30.r),
+              border: Border.all(width: 5.w, color: const Color(0xFFE13D56)),
+              boxShadow: const [
+                BoxShadow(
+                    color: Color(0x3F000000),
+                    blurRadius: 4,
+                    offset: Offset(0, 4))
+              ],
             ),
-          ],
-        );
-      },
+            child: Center(
+              child: Image.asset('assets/icons/plus.png',
+                  width: 26.w, height: 26.w, color: const Color(0xFF342E37)),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget buildTargetCard(Map<String, dynamic> target, double scale) {
-    final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
-    final isFavorite = target['is_favorite'] ?? false;
+  Widget _buildTargetCard(TargetItem target) {
+    final currency =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20 * scale, vertical: 10 * scale),
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
       child: Stack(
+        alignment: Alignment.center,
         children: [
           Container(
             width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 18 * scale, vertical: 20 * scale),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
             decoration: BoxDecoration(
               color: const Color(0xFFECFEFD),
-              borderRadius: BorderRadius.circular(30),
-              boxShadow: const [BoxShadow(color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 4))],
+              borderRadius:
+                  BorderRadius.circular(30.r), 
+              boxShadow: const [
+                BoxShadow(
+                    color: Color(0x3F000000),
+                    blurRadius: 4,
+                    offset: Offset(0, 4))
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(target['target_name'], style: GoogleFonts.poppins(fontSize: 16 * scale, color: const Color(0xFF342E37))),
-                SizedBox(height: 4 * scale),
+                Text(target.name,
+                    style: GoogleFonts.poppins(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight
+                            .w400, 
+                        color: const Color(0xFF342E37))),
+                SizedBox(height: 4.h),
                 RichText(
                   text: TextSpan(
+                    style: DefaultTextStyle.of(context).style,
                     children: [
                       TextSpan(
-                          text: '${currency.format(target['saved_amount'])}\n',
-                          style: TextStyle(fontSize: 16 * scale, fontWeight: FontWeight.w600, color: const Color(0xFF342E37))),
+                          text: '${currency.format(target.savedAmount)}\n',
+                          style: TextStyle(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF342E37))),
                       TextSpan(
-                          text: '/ ${currency.format(target['target_amount'])}',
-                          style: TextStyle(fontSize: 16 * scale, fontWeight: FontWeight.w600, color: const Color(0xFF9D8DF1))),
+                          text: '/ ${currency.format(target.targetAmount)}',
+                          style: TextStyle(
+                              fontSize: 15.sp, 
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF9D8DF1))),
                     ],
                   ),
                 ),
-                SizedBox(height: 5 * scale),
-                Text('Completion Plan : ${target['target_deadline']}',
-                    style: GoogleFonts.poppins(fontSize: 12 * scale, fontStyle: FontStyle.italic, color: const Color(0xFF342E37))),
+                SizedBox(height: 5.h),
+                Text('Completion Plan : ${target.deadline}',
+                    style: GoogleFonts.poppins(
+                        fontSize: 11.sp,
+                        fontStyle: FontStyle.italic,
+                        color: const Color(0xFF342E37))),
               ],
             ),
           ),
           Positioned(
-            right: 20 * scale,
-            top: 31 * scale,
+            right: 15.w, // Posisi disesuaikan
+            top: 0,
+            bottom: 0,
             child: GestureDetector(
-              onTap: () => toggleFavorite(target['id'], isFavorite),
+              onTap: () => _toggleFavorite(target.id, target.isFavorite),
               child: Icon(
-                isFavorite ? Icons.star : Icons.star_border,
-                size: 67 * scale,
-                color: isFavorite ? const Color(0xFFFFED66) : Colors.grey,
+                target.isFavorite
+                    ? Icons.star_rounded
+                    : Icons.star_border_rounded,
+                size: 80.r, 
+                color: target.isFavorite
+                    ? const Color(0xFFFFED66)
+                    : Colors.grey[400],
               ),
             ),
           ),
@@ -344,7 +457,8 @@ class BottomCurveClipper extends CustomClipper<Path> {
     final path = Path();
     path.lineTo(0, size.height - curveHeight);
     path.arcToPoint(Offset(size.width, size.height - curveHeight),
-        radius: Radius.elliptical(size.width, curveHeight * 2), clockwise: false);
+        radius: Radius.elliptical(size.width, curveHeight * 2),
+        clockwise: false);
     path.lineTo(size.width, 0);
     path.close();
     return path;

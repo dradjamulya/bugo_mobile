@@ -192,7 +192,7 @@ class _EditProfilePopupState extends State<EditProfilePopup> {
         _buildTextField(widget.emailController, scale, readOnly: true),
         SizedBox(height: 50 * scale),
         Center(
-          child: _buildSaveButton(updateProfile, 'SAVE EDIT', scale),
+          child: _buildSaveButton(updateProfile, 'SAVE PROFILE', scale),
         ),
       ],
     );
@@ -211,7 +211,7 @@ class _EditProfilePopupState extends State<EditProfilePopup> {
         _buildTextField(confirmPassController, scale, obscure: true),
         SizedBox(height: 50 * scale),
         Center(
-          child: _buildSaveButton(updatePassword, 'SAVE EDIT', scale),
+          child: _buildSaveButton(updatePassword, 'SAVE PASSWORD', scale),
         ),
       ],
     );

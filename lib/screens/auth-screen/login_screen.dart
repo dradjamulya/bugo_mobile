@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'register_screen.dart';
-import '../../home_screen.dart';
+import '../../services/auth_service.dart';
+import '../../main_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,8 +17,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  bool _hasError = false;
+  final AuthService _authService = AuthService();
+
+  bool _isLoading = false;
   String _errorMessage = "It's nice to have you back, Bud!";
+  bool _hasError = false;
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) {
@@ -28,37 +32,28 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+    setState(() {
+      _isLoading = true;
+    });
+
+    final result = await _authService.loginUser(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
     );
 
-    try {
-      final email = _emailController.text.trim();
-      final password = _passwordController.text.trim();
+    if (!mounted) return;
 
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    setState(() {
+      _isLoading = false;
+      _hasError = !result['success'];
+      _errorMessage = result['message'];
+    });
 
-      if (!mounted) return;
-      Navigator.of(context).pop();
-      setState(() {
-        _hasError = false;
-        _errorMessage = "It's nice to have you back, Bud!";
-      });
+    if (result['success']) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        MaterialPageRoute(builder: (_) => MainScreen()),
       );
-    } catch (_) {
-      Navigator.of(context).pop();
-      setState(() {
-        _hasError = true;
-        _errorMessage = "Make sure you filled them correctly!";
-      });
     }
   }
 
@@ -71,10 +66,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final scale = screenWidth / 390;
-
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -92,16 +83,15 @@ class _LoginScreenState extends State<LoginScreen> {
               child: ConstrainedBox(
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.09),
+                  padding: EdgeInsets.symmetric(horizontal: 35.w),
                   child: Form(
                     key: _formKey,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(height: screenHeight * 0.1),
+                        SizedBox(height: 80.h),
                         SizedBox(
-                          height: screenHeight * 0.06,
+                          height: 50.h,
                           child: Center(
                             child: Text(
                               _errorMessage,
@@ -110,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: _hasError
                                     ? const Color(0xFFE13D56)
                                     : const Color(0xFF342E37),
-                                fontSize: 16 * scale,
+                                fontSize: 16.sp,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -119,17 +109,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         CustomTextField(
                           controller: _emailController,
                           hintText: 'EMAIL',
-                          isPassword: false,
-                          scale: scale,
                           keyboardType: TextInputType.emailAddress,
                           validator: (value) {
-                            if (value == null || value.isEmpty) {
+                            if (value == null || value.isEmpty)
                               return 'Email cannot be empty';
-                            }
                             final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-                            if (!regex.hasMatch(value)) {
+                            if (!regex.hasMatch(value))
                               return 'Enter a valid email';
-                            }
                             return null;
                           },
                         ),
@@ -137,75 +123,20 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _passwordController,
                           hintText: 'PASSWORD',
                           isPassword: true,
-                          scale: scale,
                           keyboardType: TextInputType.visiblePassword,
                           validator: (value) {
-                            if (value == null || value.isEmpty) {
+                            if (value == null || value.isEmpty)
                               return 'Password cannot be empty';
-                            }
-                            if (value.length < 6) {
+                            if (value.length < 6)
                               return 'Password must be at least 6 characters';
-                            }
                             return null;
                           },
                         ),
-                        SizedBox(height: screenHeight * 0.01),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const RegisterScreen()),
-                            );
-                          },
-                          child: RichText(
-                            textAlign: TextAlign.center,
-                            text: TextSpan(
-                              text: "Don’t have an account, Bud? ",
-                              style: GoogleFonts.poppins(
-                                color: const Color(0xFF342E37),
-                                fontSize: 14 * scale,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              children: [
-                                TextSpan(
-                                  text: 'Register',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14 * scale,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF9D8DF1),
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.015),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFFED66),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30 * scale),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: screenWidth * 0.18,
-                              vertical: screenHeight * 0.016,
-                            ),
-                            minimumSize:
-                                Size(screenWidth * 0.48, screenHeight * 0.052),
-                          ),
-                          onPressed: _login,
-                          child: Text(
-                            'LOGIN',
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xFF342E37),
-                              fontSize: 14 * scale,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.035),
+                        SizedBox(height: 10.h),
+                        _buildRegisterLink(),
+                        SizedBox(height: 15.h),
+                        _buildLoginButton(),
+                        SizedBox(height: 35.h),
                       ],
                     ),
                   ),
@@ -217,13 +148,86 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
+  Widget _buildLoginButton() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFFFFED66),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.r)),
+        padding: EdgeInsets.symmetric(horizontal: 70.w, vertical: 15.h),
+        minimumSize: Size(180.w, 50.h),
+      ),
+      onPressed: _isLoading ? null : _login,
+      child: _isLoading
+          ? const CircularProgressIndicator(color: Color(0xFF342E37))
+          : Text('LOGIN',
+              style: GoogleFonts.poppins(
+                  color: const Color(0xFF342E37),
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500)),
+    );
+  }
+
+  Widget _buildRegisterLink() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const RegisterScreen(),
+
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+
+              const begin = Offset(1.0, 0.0); 
+              const end =
+                  Offset.zero; 
+              const curve = Curves.ease; 
+
+              final tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+              final offsetAnimation = animation.drive(tween);
+
+              return SlideTransition(
+                position: offsetAnimation,
+                child: child, 
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 300),
+          ),
+        );
+      },
+      child: RichText(
+        textAlign: TextAlign.center,
+        text: TextSpan(
+          text: "Don’t have an account, Bud? ",
+          style: GoogleFonts.poppins(
+              color: const Color(0xFF342E37),
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600),
+          children: [
+            TextSpan(
+              text: 'Register',
+              style: GoogleFonts.poppins(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF9D8DF1),
+                  decoration: TextDecoration.underline),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
   final String hintText;
   final bool isPassword;
-  final double scale;
   final TextInputType keyboardType;
   final String? Function(String?) validator;
 
@@ -231,8 +235,7 @@ class CustomTextField extends StatefulWidget {
     super.key,
     required this.controller,
     required this.hintText,
-    required this.isPassword,
-    required this.scale,
+    this.isPassword = false,
     required this.keyboardType,
     required this.validator,
   });
@@ -242,23 +245,19 @@ class CustomTextField extends StatefulWidget {
 }
 
 class _CustomTextFieldState extends State<CustomTextField> {
-  String? errorText;
+  String? _errorText;
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           decoration: BoxDecoration(
             boxShadow: const [
-              BoxShadow(
-                color: Color(0x3F000000),
-                blurRadius: 4,
-                offset: Offset(0, 4),
-                spreadRadius: 0,
-              ),
+              BoxShadow(color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 4)),
             ],
-            borderRadius: BorderRadius.circular(30 * widget.scale),
+            borderRadius: BorderRadius.circular(30.r),
           ),
           child: TextFormField(
             controller: widget.controller,
@@ -266,56 +265,42 @@ class _CustomTextFieldState extends State<CustomTextField> {
             keyboardType: widget.keyboardType,
             textAlign: TextAlign.center,
             cursorColor: const Color(0xFF342E37),
-            style: GoogleFonts.poppins(
-              color: const Color(0xFF342E37),
-              fontSize: 13 * widget.scale,
-              fontWeight: FontWeight.w500,
-            ),
+            style: GoogleFonts.poppins(color: const Color(0xFF342E37), fontSize: 14.sp, fontWeight: FontWeight.w500),
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.white,
               hintText: widget.hintText.toUpperCase(),
-              hintStyle: GoogleFonts.poppins(
-                color: const Color(0xFF342E37).withOpacity(0.35),
-                fontSize: 13 * widget.scale,
-                fontWeight: FontWeight.w400,
-              ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 16),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30 * widget.scale),
-                borderSide: BorderSide.none,
-              ),
-              errorText: null, // disable default error text
+              hintStyle: GoogleFonts.poppins(color: const Color(0xFF342E37).withOpacity(0.35), fontSize: 14.sp, fontWeight: FontWeight.w400),
+              contentPadding: EdgeInsets.symmetric(vertical: 16.h),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(30.r), borderSide: BorderSide.none),
+              errorStyle: const TextStyle(height: 0.01, color: Colors.transparent),
             ),
-            autovalidateMode: AutovalidateMode.onUserInteraction,
+            validator: widget.validator,
             onChanged: (value) {
               setState(() {
-                errorText = widget.validator(value);
+                _errorText = widget.validator(value);
               });
             },
-            onSaved: (value) {
-              setState(() {
-                errorText = widget.validator(value);
-              });
-            },
+            autovalidateMode: AutovalidateMode.onUserInteraction,
           ),
         ),
-        if (errorText != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 4.0),
-            child: Align(
-              alignment: Alignment.center,
-              child: Text(
-                errorText!,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  color: const Color(0xFFE13D56),
-                  fontSize: 11 * widget.scale,
-                ),
-              ),
-            ),
-          ),
-        const SizedBox(height: 15),
+        
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: SizeTransition(sizeFactor: animation, child: child)),
+          child: _errorText != null
+              ? Padding(
+                  key: ValueKey(_errorText),
+                  padding: EdgeInsets.only(top: 6.h),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Text(_errorText!, textAlign: TextAlign.center, style: GoogleFonts.poppins(color: const Color(0xFFE13D56), fontSize: 12.sp)),
+                  ),
+                )
+              : SizedBox(key: const ValueKey('empty'), height: 6.h + 12.sp), 
+        ),
+
+        SizedBox(height: 10.h),
       ],
     );
   }

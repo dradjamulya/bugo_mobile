@@ -1,6 +1,4 @@
-library default_connector;
 import 'package:firebase_data_connect/firebase_data_connect.dart';
-import 'dart:convert';
 
 class DefaultConnector {
   static ConnectorConfig connectorConfig = ConnectorConfig(
@@ -9,13 +7,16 @@ class DefaultConnector {
     'bugomobile',
   );
 
+  FirebaseDataConnect dataConnect;
+
   DefaultConnector({required this.dataConnect});
+
   static DefaultConnector get instance {
     return DefaultConnector(
       dataConnect: FirebaseDataConnect.instanceFor(
         connectorConfig: connectorConfig,
-        sdkType: CallerSDKType.generated));
+        // sdkType: CallerSDKType.generated, // ❌ hapus jika enum tidak tersedia
+      ),
+    );
   }
-
-  FirebaseDataConnect dataConnect;
 }

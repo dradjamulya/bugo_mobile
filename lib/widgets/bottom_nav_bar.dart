@@ -1,89 +1,71 @@
+// lib/widgets/bottom_nav_bar.dart
+
 import 'package:flutter/material.dart';
-import '../home_screen.dart';
-import '../screens/target-screen/target_screen.dart';
-import '../screens/profile-screen/profile_screen.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class BottomNavBar extends StatelessWidget {
-  final String activePage;
+  final int currentIndex;
+  final Function(int) onTap;
 
-  const BottomNavBar({super.key, required this.activePage});
+  const BottomNavBar({
+    super.key,
+    required this.currentIndex,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    Color getColor(String page) =>
-        page == activePage ? const Color(0xFF342E37) : Colors.white;
+    // Fungsi helper untuk menentukan warna ikon
+    Color getColor(int index) =>
+        index == currentIndex ? const Color(0xFF342E37) : Colors.white;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+      padding: EdgeInsets.symmetric(vertical: 15.h, horizontal: 30.w),
       decoration: BoxDecoration(
         color: const Color(0xFFE13D56),
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(30.r),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          GestureDetector(
-            onTap: () {
-              if (activePage != 'home') {
-                Navigator.pushReplacement(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => const HomeScreen(),
-                    transitionDuration: Duration.zero,
-                    reverseTransitionDuration: Duration.zero,
-                  ),
-                );
-              }
-            },
-            child: Image.asset(
-              'assets/icons/arrow.png',
-              width: 33,
-              height: 33,
-              color: getColor('home'),
-            ),
+          _buildNavItem(
+            context: context,
+            iconPath: 'assets/icons/arrow.png', // Ganti dengan ikon home Anda
+            index: 0,
+            color: getColor(0),
           ),
-          GestureDetector(
-            onTap: () {
-              if (activePage != 'target') {
-                Navigator.pushReplacement(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => const TargetScreen(),
-                    transitionDuration: Duration.zero,
-                    reverseTransitionDuration: Duration.zero,
-                  ),
-                );
-              }
-            },
-            child: Image.asset(
-              'assets/icons/wallet.png',
-              width: 35,
-              height: 35,
-              color: getColor('target'),
-            ),
+          _buildNavItem(
+            context: context,
+            iconPath: 'assets/icons/wallet.png',
+            index: 1,
+            color: getColor(1),
           ),
-          GestureDetector(
-            onTap: () {
-              if (activePage != 'profile') {
-                Navigator.pushReplacement(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => const ProfileScreen(),
-                    transitionDuration: Duration.zero,
-                    reverseTransitionDuration: Duration.zero,
-                  ),
-                );
-              }
-            },
-            child: Image.asset(
-              'assets/icons/person.png',
-              width: 35,
-              height: 35,
-              color: getColor('profile'),
-            ),
+          _buildNavItem(
+            context: context,
+            iconPath: 'assets/icons/person.png',
+            index: 2,
+            color: getColor(2),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required BuildContext context,
+    required String iconPath,
+    required int index,
+    required Color color,
+  }) {
+    return GestureDetector(
+      onTap: () => onTap(index),
+      behavior: HitTestBehavior.opaque, // Pastikan area tap lebih besar
+      child: Image.asset(
+        iconPath,
+        width: 35.w, // Ukuran responsif
+        height: 35.w,
+        color: color,
       ),
     );
   }
