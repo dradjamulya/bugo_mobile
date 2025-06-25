@@ -239,49 +239,33 @@ class _TargetScreenState extends State<TargetScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'No Target Found',
-            style: GoogleFonts.poppins(
-                fontSize: 22.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.white),
-          ),
-          SizedBox(height: 10.h),
-          Text(
-            'Make your first target!',
-            style: GoogleFonts.poppins(fontSize: 16.sp, color: Colors.white70),
-          ),
-          SizedBox(height: 40.h),
-          GestureDetector(
-            onTap: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const InputScreen()))
-                .then((_) => _loadData()),
-            child: Container(
-              width: 72.w,
-              height: 72.w,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(width: 5.w, color: const Color(0xFFE13D56)),
-                boxShadow: const [
-                  BoxShadow(
-                      color: Color(0x3F000000),
-                      blurRadius: 4,
-                      offset: Offset(0, 4))
-                ],
-              ),
-              child: Center(
-                child: Image.asset('assets/icons/plus.png',
-                    width: 26.w, height: 26.w, color: const Color(0xFF342E37)),
+    final emptyData = TargetScreenData(
+      totalSavings: 0,
+      totalTarget: 0,
+      targets: [],
+    );
+
+    return Column(
+      children: [
+        _buildTopSection(emptyData),
+        SizedBox(height: 20.h),
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 40.w),
+              child: Text(
+                'Your targets will appear here.\nTap the + button above to get started!',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 16.sp,
+                  color: Colors.grey.shade700,
+                  height: 1.5,
+                ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -319,6 +303,56 @@ class _TargetScreenState extends State<TargetScreen> {
   Widget _buildTargetStats(TargetScreenData data) {
     final currency =
         NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+
+    final addButton = GestureDetector(
+      onTap: () => Navigator.push(
+              context, MaterialPageRoute(builder: (_) => const InputScreen()))
+          .then((_) => _loadData()),
+      child: Container(
+        width: 72.w,
+        height: 38.h,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30.r),
+          border: Border.all(width: 5.w, color: const Color(0xFFE13D56)),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 4))
+          ],
+        ),
+        child: Center(
+          child: Image.asset('assets/icons/plus.png',
+              width: 26.w, height: 26.w, color: const Color(0xFF342E37)),
+        ),
+      ),
+    );
+
+    if (data.targets.isEmpty) {
+      return Column(
+        children: [
+          Text('Target Not Found',
+              style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 18.sp, 
+                  fontWeight: FontWeight.w700)),
+          SizedBox(height: 13.h),
+          Text("Rp0",
+              style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 34.sp,
+                  fontWeight: FontWeight.w700)),
+          SizedBox(height: 12.h),
+          Text("Rp0",
+              style: GoogleFonts.poppins(
+                  color: const Color(0xFFFFED66),
+                  fontSize: 22.sp,
+                  fontWeight: FontWeight.w400)),
+          SizedBox(height: 36.h),
+          addButton, 
+        ],
+      );
+    }
+
     return Column(
       children: [
         Text('Current Target:',

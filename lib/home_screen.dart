@@ -184,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ClipPath(
             clipper: TopCurveClipper(),
             child: Container(
-              height: 280.h,
+              height: 300.h,
               color: const Color(0xFFE13D56),
             ),
           ),

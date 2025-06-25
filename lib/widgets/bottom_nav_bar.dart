@@ -1,5 +1,3 @@
-// lib/widgets/bottom_nav_bar.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -15,7 +13,6 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Fungsi helper untuk menentukan warna ikon
     Color getColor(int index) =>
         index == currentIndex ? const Color(0xFF342E37) : Colors.white;
 
@@ -31,7 +28,7 @@ class BottomNavBar extends StatelessWidget {
         children: [
           _buildNavItem(
             context: context,
-            iconPath: 'assets/icons/arrow.png', // Ganti dengan ikon home Anda
+            iconPath: 'assets/icons/arrow.png', //    
             index: 0,
             color: getColor(0),
           ),
@@ -60,10 +57,10 @@ class BottomNavBar extends StatelessWidget {
   }) {
     return GestureDetector(
       onTap: () => onTap(index),
-      behavior: HitTestBehavior.opaque, // Pastikan area tap lebih besar
+      behavior: HitTestBehavior.opaque,
       child: Image.asset(
         iconPath,
-        width: 35.w, // Ukuran responsif
+        width: 35.w, 
         height: 35.w,
         color: color,
       ),

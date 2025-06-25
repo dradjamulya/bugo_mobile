@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../auth-screen/login_screen.dart';
 import 'editprofile_popup.dart';
 
 class UserProfile {
@@ -45,6 +46,10 @@ class ProfileService {
       name: doc.data()?['name'] ?? 'No Name',
       email: doc.data()?['email'] ?? 'No Email',
     );
+  }
+
+  Future<void> logout() async {
+    await _auth.signOut();
   }
 }
 
@@ -103,6 +108,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       },
     );
+  }
+
+  Future<void> _logout() async {
+    try {
+      await _profileService.logout();
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (Route<dynamic> route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to log out: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -180,9 +203,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     hint: '********', label: 'Password', isObscured: true),
                 SizedBox(height: 40.h),
                 _buildEditButton(() => _showEditPopup(userProfile)),
-                const Spacer(flex: 3),
-                
-                SizedBox(height: 20.h), 
+                SizedBox(height: 20.h),
+                _buildLogoutLink(),
+                const Spacer(flex: 2)
               ],
             ),
           ),
@@ -231,6 +254,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           fontSize: 14.sp,
           fontWeight: FontWeight.w500,
           color: const Color(0xFF342E37),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogoutLink() {
+    return GestureDetector(
+      onTap: _logout,
+      child: Text(
+        'Logout',
+        style: GoogleFonts.poppins(
+          fontSize: 14.sp,
+          color: const Color(0xFFE13D56),
+          fontWeight: FontWeight.w500,
+          decoration: TextDecoration.underline,
+          decorationColor: const Color(0xFFE13D56),
         ),
       ),
     );
