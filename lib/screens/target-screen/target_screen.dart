@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'dart:math';
 import 'balance_screen.dart';
 import 'input_screen.dart';
 import 'edit_target_popup.dart';
@@ -16,14 +17,13 @@ class TargetItem {
   final int savedAmount;
   final bool isFavorite;
 
-  TargetItem({
-    required this.id,
-    required this.name,
-    required this.targetAmount,
-    required this.deadline,
-    required this.savedAmount,
-    required this.isFavorite,
-  });
+  TargetItem(
+      {required this.id,
+      required this.name,
+      required this.targetAmount,
+      required this.deadline,
+      required this.savedAmount,
+      required this.isFavorite});
 }
 
 class TargetScreenData {
@@ -31,11 +31,10 @@ class TargetScreenData {
   final int totalTarget;
   final List<TargetItem> targets;
 
-  TargetScreenData({
-    required this.totalSavings,
-    required this.totalTarget,
-    required this.targets,
-  });
+  TargetScreenData(
+      {required this.totalSavings,
+      required this.totalTarget,
+      required this.targets});
 }
 
 class TargetService {
@@ -64,7 +63,6 @@ class TargetService {
     final targetsSnapshot = results[0] as QuerySnapshot;
     final savingsSnapshot = results[1] as QuerySnapshot;
     final expensesSnapshot = results[2] as QuerySnapshot;
-
     final validTargetIds = targetsSnapshot.docs.map((doc) => doc.id).toSet();
 
     final Map<String, int> savingsPerTarget = {};
@@ -93,7 +91,7 @@ class TargetService {
       final int targetAmount = (data['target_amount'] as num? ?? 0).toInt();
       final int saved = (savingsPerTarget[targetId] ?? 0) -
           (expensesPerTarget[targetId] ?? 0);
-      final int validSaved = saved < 0 ? 0 : saved;
+      final int validSaved = max(0, saved);
 
       totalTargetAmount += targetAmount;
       totalSavings += validSaved;
@@ -109,16 +107,16 @@ class TargetService {
     }
 
     return TargetScreenData(
-      totalSavings: totalSavings,
-      totalTarget: totalTargetAmount,
-      targets: targets,
-    );
+        totalSavings: totalSavings,
+        totalTarget: totalTargetAmount,
+        targets: targets);
   }
 
   Future<void> toggleFavorite(String targetId, bool isCurrentlyFavorite) async {
-    await _firestore.collection('targets').doc(targetId).update({
-      'is_favorite': !isCurrentlyFavorite,
-    });
+    await _firestore
+        .collection('targets')
+        .doc(targetId)
+        .update({'is_favorite': !isCurrentlyFavorite});
   }
 }
 
@@ -179,6 +177,7 @@ class _TargetScreenState extends State<TargetScreen> {
           child: Container(height: 380.h, color: const Color(0xFFE13D56)),
         ),
         SafeArea(
+          bottom: false, // SafeArea untuk bottom sudah dihandle oleh MainScreen
           child: FutureBuilder<TargetScreenData>(
             future: _targetDataFuture,
             builder: (context, snapshot) {
@@ -201,18 +200,16 @@ class _TargetScreenState extends State<TargetScreen> {
                   _buildTopSection(data),
                   SizedBox(height: 9.h),
                   Expanded(
-                    child: ClipRRect(
-                      child: ListView.builder(
-                        padding: EdgeInsets.only(top: 1.h, bottom: 10.h),
-                        itemCount: data.targets.length,
-                        itemBuilder: (context, index) {
-                          final target = data.targets[index];
-                          return GestureDetector(
-                            onTap: () => _showEditTargetPopup(target),
-                            child: _buildTargetCard(target),
-                          );
-                        },
-                      ),
+                    child: ListView.builder(
+                      padding: EdgeInsets.only(top: 1.h, bottom: 10.h),
+                      itemCount: data.targets.length,
+                      itemBuilder: (context, index) {
+                        final target = data.targets[index];
+                        return GestureDetector(
+                          onTap: () => _showEditTargetPopup(target),
+                          child: _buildTargetCard(target),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -239,12 +236,8 @@ class _TargetScreenState extends State<TargetScreen> {
   }
 
   Widget _buildEmptyState() {
-    final emptyData = TargetScreenData(
-      totalSavings: 0,
-      totalTarget: 0,
-      targets: [],
-    );
-
+    final emptyData =
+        TargetScreenData(totalSavings: 0, totalTarget: 0, targets: []);
     return Column(
       children: [
         _buildTopSection(emptyData),
@@ -254,14 +247,12 @@ class _TargetScreenState extends State<TargetScreen> {
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 40.w),
               child: Text(
-                'Your targets will appear here.\nTap the + button above to get started!',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 16.sp,
-                  color: Colors.grey.shade700,
-                  height: 1.5,
-                ),
-              ),
+                  'Your targets will appear here.\nTap the + button above to get started!',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                      fontSize: 16.sp,
+                      color: Colors.grey.shade700,
+                      height: 1.5)),
             ),
           ),
         ),
@@ -272,30 +263,26 @@ class _TargetScreenState extends State<TargetScreen> {
   Widget _buildFlipButton() {
     return GestureDetector(
       onTap: () => Navigator.push(
-        context,
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 800),
-          pageBuilder: (_, __, ___) => const BalanceScreen(),
-        ),
-      ),
+          context,
+          PageRouteBuilder(
+              transitionDuration: const Duration(milliseconds: 800),
+              pageBuilder: (_, __, ___) => const BalanceScreen())),
       child: Container(
         width: 63.w,
         height: 33.h,
         decoration: BoxDecoration(
-          color: const Color(0xFF342E37),
-          borderRadius: BorderRadius.circular(30.r),
-          boxShadow: const [
-            BoxShadow(
-                color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 4))
-          ],
-        ),
+            color: const Color(0xFF342E37),
+            borderRadius: BorderRadius.circular(30.r),
+            boxShadow: const [
+              BoxShadow(
+                  color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 4))
+            ]),
         child: Center(
-          child: Text('Flip',
-              style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w700)),
-        ),
+            child: Text('Flip',
+                style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w700))),
       ),
     );
   }
@@ -303,56 +290,6 @@ class _TargetScreenState extends State<TargetScreen> {
   Widget _buildTargetStats(TargetScreenData data) {
     final currency =
         NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
-
-    final addButton = GestureDetector(
-      onTap: () => Navigator.push(
-              context, MaterialPageRoute(builder: (_) => const InputScreen()))
-          .then((_) => _loadData()),
-      child: Container(
-        width: 72.w,
-        height: 38.h,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(30.r),
-          border: Border.all(width: 5.w, color: const Color(0xFFE13D56)),
-          boxShadow: const [
-            BoxShadow(
-                color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 4))
-          ],
-        ),
-        child: Center(
-          child: Image.asset('assets/icons/plus.png',
-              width: 26.w, height: 26.w, color: const Color(0xFF342E37)),
-        ),
-      ),
-    );
-
-    if (data.targets.isEmpty) {
-      return Column(
-        children: [
-          Text('Target Not Found',
-              style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 18.sp, 
-                  fontWeight: FontWeight.w700)),
-          SizedBox(height: 13.h),
-          Text("Rp0",
-              style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 34.sp,
-                  fontWeight: FontWeight.w700)),
-          SizedBox(height: 12.h),
-          Text("Rp0",
-              style: GoogleFonts.poppins(
-                  color: const Color(0xFFFFED66),
-                  fontSize: 22.sp,
-                  fontWeight: FontWeight.w400)),
-          SizedBox(height: 36.h),
-          addButton, 
-        ],
-      );
-    }
-
     return Column(
       children: [
         Text('Current Target:',
@@ -381,20 +318,18 @@ class _TargetScreenState extends State<TargetScreen> {
             width: 72.w,
             height: 38.h,
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(30.r),
-              border: Border.all(width: 5.w, color: const Color(0xFFE13D56)),
-              boxShadow: const [
-                BoxShadow(
-                    color: Color(0x3F000000),
-                    blurRadius: 4,
-                    offset: Offset(0, 4))
-              ],
-            ),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30.r),
+                border: Border.all(width: 5.w, color: const Color(0xFFE13D56)),
+                boxShadow: const [
+                  BoxShadow(
+                      color: Color(0x3F000000),
+                      blurRadius: 4,
+                      offset: Offset(0, 4))
+                ]),
             child: Center(
-              child: Image.asset('assets/icons/plus.png',
-                  width: 26.w, height: 26.w, color: const Color(0xFF342E37)),
-            ),
+                child: Image.asset('assets/icons/plus.png',
+                    width: 26.w, height: 26.w, color: const Color(0xFF342E37))),
           ),
         ),
       ],
@@ -404,55 +339,48 @@ class _TargetScreenState extends State<TargetScreen> {
   Widget _buildTargetCard(TargetItem target) {
     final currency =
         NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
-
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
         decoration: BoxDecoration(
-          color: const Color(0xFFECFEFD),
-          borderRadius: BorderRadius.circular(25.r),
-          boxShadow: const [
-            BoxShadow(
-                color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 4))
-          ],
-        ),
+            color: const Color(0xFFECFEFD),
+            borderRadius: BorderRadius.circular(25.r),
+            boxShadow: const [
+              BoxShadow(
+                  color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 4))
+            ]),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    target.name,
-                    style: GoogleFonts.poppins(
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.w400,
-                        color: const Color(0xFF342E37)),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    currency.format(target.savedAmount),
-                    style: GoogleFonts.poppins(
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF342E37)),
-                  ),
-                  Text(
-                    '/ ${currency.format(target.targetAmount)}',
-                    style: GoogleFonts.poppins(
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF9D8DF1)),
-                  ),
-                  SizedBox(height: 5.h),
-                  Text('Completion Plan : ${target.deadline}',
+                  Text(target.name,
                       style: GoogleFonts.poppins(
-                          fontSize: 11.sp,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF342E37)),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1),
+                  SizedBox(height: 2.h),
+                  Text(currency.format(target.savedAmount),
+                      style: GoogleFonts.poppins(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF342E37))),
+                  Text('/ ${currency.format(target.targetAmount)}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF9D8DF1))),
+                  SizedBox(height: 4.h),
+                  Text('Deadline : ${target.deadline}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 10.sp,
                           fontStyle: FontStyle.italic,
                           color: const Color(0xFF342E37))),
                 ],
@@ -462,14 +390,13 @@ class _TargetScreenState extends State<TargetScreen> {
             GestureDetector(
               onTap: () => _toggleFavorite(target.id, target.isFavorite),
               child: Icon(
-                target.isFavorite
-                    ? Icons.star_rounded
-                    : Icons.star_border_rounded,
-                size: 70.r,
-                color: target.isFavorite
-                    ? const Color(0xFFFFED66)
-                    : Colors.grey[400],
-              ),
+                  target.isFavorite
+                      ? Icons.star_rounded
+                      : Icons.star_border_rounded,
+                  size: 60.r,
+                  color: target.isFavorite
+                      ? const Color(0xFFFFED66)
+                      : Colors.grey[400]),
             ),
           ],
         ),
@@ -479,16 +406,12 @@ class _TargetScreenState extends State<TargetScreen> {
 }
 
 class BottomCurveClipper extends CustomClipper<Path> {
-  final double curveHeight;
-  BottomCurveClipper({this.curveHeight = 120});
-
   @override
   Path getClip(Size size) {
     final path = Path();
-    path.lineTo(0, size.height - curveHeight);
-    path.arcToPoint(Offset(size.width, size.height - curveHeight),
-        radius: Radius.elliptical(size.width, curveHeight * 2),
-        clockwise: false);
+    path.lineTo(0, size.height - 120.h);
+    path.arcToPoint(Offset(size.width, size.height - 120.h),
+        radius: Radius.elliptical(size.width, (120 * 2).h), clockwise: false);
     path.lineTo(size.width, 0);
     path.close();
     return path;
